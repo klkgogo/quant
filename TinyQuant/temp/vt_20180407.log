@@ -1,0 +1,10 @@
+2018-04-07 19:24:42,327  INFO: FUTU	tiny_strate_sample:init_strate 'tiny_strate_sample' ret = True
+2018-04-07 19:26:17,753  INFO: FUTU	tiny_strate_sample:init_strate 'tiny_strate_sample' ret = True
+2018-04-07 19:26:22,365  INFO: FUTU	tiny_strate_sample:on_start param1=1 param2=2
+2018-04-07 19:26:22,365  INFO: FUTU	tiny_strate_sample:on_after_trading - 2018-04-07 19:26:21
+2018-04-07 19:26:49,031  INFO: FUTU	tiny_strate_sample:init_strate 'tiny_strate_sample' ret = True
+2018-04-07 19:26:51,878  INFO: FUTU	tiny_strate_sample:on_start param1=1 param2=2
+2018-04-07 19:26:51,878  INFO: FUTU	tiny_strate_sample:on_after_trading - 2018-04-07 19:26:51
+2018-04-07 19:27:59,320  INFO: FUTU	tiny_strate_sample:init_strate 'tiny_strate_sample' ret = True
+2018-04-07 19:28:02,171  INFO: FUTU	tiny_strate_sample:on_start param1=1 param2=2
+2018-04-07 19:28:02,171  INFO: FUTU	tiny_strate_sample:on_after_trading - 2018-04-07 19:28:02

@@ -1,0 +1,19 @@
+2018-04-14 10:06:14,777  INFO: FUTU	rebound_strate:init_strate 'rebound_strate' ret = True
+2018-04-14 10:10:02,104  INFO: FUTU	rebound_strate:init_strate 'rebound_strate' ret = True
+2018-04-14 10:10:03,282  INFO: FUTU	rebound_strate:on_start param1=1 param2=2
+2018-04-14 10:10:04,114  INFO: FUTU	rebound_strate:on_after_trading - 2018-04-14 10:10:03
+2018-04-14 10:10:04,114  INFO: FUTU	rebound_strate:on_bar_day symbol=US.FB dt=20180413 00:00:00  open=164.58 high=165.704 close=164.52 low=163.77 vol=19990561
+2018-04-14 10:15:19,022  INFO: FUTU	rebound_strate:init_strate 'rebound_strate' ret = True
+2018-04-14 10:15:20,186  INFO: FUTU	rebound_strate:on_start param1=1 param2=2
+2018-04-14 10:15:21,033  INFO: FUTU	rebound_strate:on_after_trading - 2018-04-14 10:15:20
+2018-04-14 10:15:21,033  INFO: FUTU	rebound_strate:on_bar_day symbol=US.FB dt=20180413 00:00:00  open=164.58 high=165.704 close=164.52 low=163.77 vol=19990561
+2018-04-14 10:50:56,382  INFO: FUTU	rebound_strate:init_strate 'rebound_strate' ret = True
+2018-04-14 10:50:57,568  INFO: FUTU	rebound_strate:on_start param1=1 param2=2
+2018-04-14 10:50:58,386  INFO: FUTU	rebound_strate:on_after_trading - 2018-04-14 10:50:58
+2018-04-14 12:25:23,691  INFO: FUTU	rebound_strate:init_strate 'rebound_strate' ret = True
+2018-04-14 12:25:24,859  INFO: FUTU	rebound_strate:on_start param1=1 param2=2
+2018-04-14 12:25:25,697  INFO: FUTU	rebound_strate:on_after_trading - 2018-04-14 12:25:25
+2018-04-14 12:25:25,698  INFO: FUTU	rebound_strate:on_bar_day symbol=US.FB dt=20180413 00:00:00  open=164.58 high=165.704 close=164.52 low=163.77 vol=19990561
+2018-04-14 12:35:18,138  INFO: FUTU	rebound_strate:init_strate 'rebound_strate' ret = True
+2018-04-14 12:35:21,707  INFO: FUTU	rebound_strate:on_start param1=1 param2=2
+2018-04-14 12:35:21,707  INFO: FUTU	rebound_strate:on_after_trading - 2018-04-14 12:35:20
