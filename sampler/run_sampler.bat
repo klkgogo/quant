@@ -1,0 +1,1 @@
+C:\Users\konglingkun\Anaconda3\Scripts\activate_sampler.bat C:\Users\konglingkun\Anaconda3
