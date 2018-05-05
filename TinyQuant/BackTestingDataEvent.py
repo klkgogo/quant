@@ -9,6 +9,7 @@ from futuquant.open_context import *
 import time
 import threading
 from copy import copy
+from TinyStrateBase import  *
 
 
 import _strptime
@@ -18,13 +19,14 @@ from datetime import  datetime, timedelta
 class BackTestingDataEvent(object):
     name = "BackTestingDataEvent"
 
-    def    __init__(self, quant_frame, quote_context, event_engine, symbol_pools, trading_days):
+    def    __init__(self, quant_frame, quote_context, event_engine, tiny_strate, symbol_pools, trading_days):
         self._quant_frame = quant_frame
         self._quote_context = quote_context
         self._event_engine = event_engine
         self._symbol_pools = symbol_pools
         self._tick_dict = {}
         self._market_opened = False
+        self._tiny_strate = tiny_strate
 
         self._trading_days = trading_days
 
@@ -310,7 +312,9 @@ class BackTestingDataEvent(object):
             event.dict_['data'] = notify_bar
             event.dict_['ktype'] = ktype
             # print("dataEvent bar: ", symbol, " dt=", notify_bar.datetime)
-            self._event_engine.put_process_data(event)
+            # self._event_engine.put_process_data(event)
+            self._tiny_strate._TinyStrateBase__event_cur_kline_bar(event)
+            # print(TinyStrateBase.__dict__)
 
     def _rebuild_sym_kline_all(self):
         print("_rebuild_sym_kline_all")
@@ -358,6 +362,7 @@ class BackTestingDataEvent(object):
                 event.dict_['data'] = notify_bar
                 event.dict_['ktype'] = ktype
                 self._event_engine.put_data(event)
+                # self._tiny_strate.
 
     def process_quote(self, data):
         """报价推送"""
@@ -447,7 +452,8 @@ class BackTestingDataEvent(object):
         event.dict_['bars_data'] = bars_data
         event.dict_['symbol'] = symbol
         event.dict_['ktype'] = ktype
-        self._event_engine.put_data(event)
+        # self._event_engine.put_data(event)
+        self._event_cur_kline_push(event)
 
 
 

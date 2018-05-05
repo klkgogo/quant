@@ -1,0 +1,4 @@
+TinyQuant/__pycache__/*.*
+.idea
+*.py[cod]
+*.xml

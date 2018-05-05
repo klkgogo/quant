@@ -268,7 +268,7 @@ class TinyBackTestingFrame(object):
         # self._check_market_event = FutuMarketEvent(self._market, self._quote_ctx, self._event_engine)
 
         #定阅行情数据
-        self._futu_data_event = BackTestingDataEvent(self, self._quote_ctx, self._event_engine, self._tiny_strate.symbol_pools, self._trading_days) #会填充一部分历史数据
+        self._futu_data_event = BackTestingDataEvent(self, self._quote_ctx, self._event_engine, self._tiny_strate,  self._tiny_strate.symbol_pools, self._trading_days) #会填充一部分历史数据
 
         # 启动事件
         self._tiny_strate.on_start()

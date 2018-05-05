@@ -85,15 +85,17 @@ class ReboundStrate(TinyStrateBase):
         # 得到分k数据的ArrayManager(vnpy)对象
         am = self.get_kl_min1_am(symbol)
         # print("kmin1 count ", am.count , " size: ", am.size, "dt=", str_dt)
-        a = am.close[am.size - am.count:]
+        a = am.close[am.size - am.count:].copy()
 
-
-        str_log = "on_bar_min1 symbol=%s dt=%s open=%s high=%s close=%s low=%s vol=%s" % (
-            symbol, str_dt, bar.open, bar.high, bar.close, bar.low, bar.volume)
+        am_close = am.close[-1]
+        str_log = "on_bar_min1 symbol=%s dt=%s open=%s high=%s close=%s  am.close=%s, low=%s vol=%s, count=%s" % (
+            symbol, str_dt, bar.open, bar.high, bar.close, am_close, bar.low, bar.volume, am.count)
+        if (am_close !=  bar.close):
+            self.log(str_log)
         self.log(str_log)
-        # print(a)
-        # print(str_log)
         self.log(str(a[-10:]))
+
+
 
     def on_bar_day(self, tiny_bar):
         """收盘时会触发一次日k回调"""
