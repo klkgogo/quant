@@ -192,102 +192,102 @@ def backtesting(bs, quote, init_fund):
     print("order cout:", lost_count + win_count, " lost:", lost_count, " win:", win_count, " win rate:", win_count/(win_count + lost_count) * 100, " maxlost:" , max_lost)
     return fund
 
-quote_ctx = OpenQuoteContext(host='192.168.56.2', port=11111)
+if __name__ == '__main__':
+    quote_ctx = OpenQuoteContext(host='127.0.0.1', port=11111)
 
-stock_code = 'SZ.002848'
-# stock_code = 'SZ.002806'
-# stock_code = 'SZ.300661'
-# stock_code = 'SZ.002052'
-# stock_code = 'SZ.002759'
-# stock_code = 'SZ.002049'
-stock_code = 'SZ.002192'
+    stock_code = 'SZ.002848'
+    # stock_code = 'SZ.002806'
+    # stock_code = 'SZ.300661'
+    # stock_code = 'SZ.002052'
+    # stock_code = 'SZ.002759'
+    # stock_code = 'SZ.002049'
+    stock_code = 'SZ.002192'
 
-start_date = "2018-01-10"
-# start_date = "2017-09-01"
+    start_date = "2018-05-03"
+    # start_date = "2017-09-01"
 
-idx_sz = 'SZ.399001'
-idx_sh = 'SZ.000001'
-idx_cyb = 'SZ.159915'
-
-
-THRESH_COV_BUY = 0.5
-THRESH_COV_SELL_1 = 0.8
-THRESH_COV_SELL_2 = 0.8
-
-end_date = None
-# end_date = "2018-01-30"
-DEBUG = False
-# DEBUG = True
-# ret, stock_kday = quote_ctx.get_history_kline(stock_code, start=start_date, end=end_date, ktype="K_DAY", autype='qfq')
-stock_kday = get_stock_kline(stock_code, start_date, end_date)
-
-ret, sz_kday = quote_ctx.get_history_kline(idx_sz, start=start_date, end=end_date, ktype="K_DAY", autype='qfq')
-ret, sh_kday = quote_ctx.get_history_kline(idx_sh, start=start_date, end=end_date, ktype="K_DAY", autype='qfq')
-ret, cyb_kday = quote_ctx.get_history_kline(idx_cyb, start=start_date, end=end_date, ktype="K_DAY", autype='qfq')
-
-# stock_kday_close = get_stock_kline(stock_code, start_date, end_date)
-
-# _, k1m_1 = quote_ctx.get_history_kline('SZ.300077', start="2018-04-19", end="2018-04-19", ktype="K_1M", autype='qfq')
-# print(k1m_1)
-plate = sz_kday
-
-cov, valid_days = get_cov(stock_code, idx_cyb, start_date, end_date)
-# print(" cov len:" , len(cov))
+    idx_sz = 'SZ.399001'
+    idx_sh = 'SZ.000001'
+    idx_cyb = 'SZ.159915'
 
 
-bs_point = get_buy_sell_point(cov, stock_kday, plate)
+    THRESH_COV_BUY = 0.5
+    THRESH_COV_SELL_1 = 0.8
+    THRESH_COV_SELL_2 = 0.8
 
-fund = backtesting(bs_point, stock_kday, 100000)
-print(" totol fund: " , fund[-1])
+    end_date = None
+    # end_date = "2018-01-30"
+    DEBUG = False
+    # DEBUG = True
+    # ret, stock_kday = quote_ctx.get_history_kline(stock_code, start=start_date, end=end_date, ktype="K_DAY", autype='qfq')
+    stock_kday = get_stock_kline(stock_code, start_date, end_date)
 
-### print mat
-norm_fund = fund / fund[0] * stock_kday['close'][0] #标准化成和stock_kday一样大，便于比较
+    ret, sz_kday = quote_ctx.get_history_kline(idx_sz, start=start_date, end=end_date, ktype="K_DAY", autype='qfq')
+    ret, sh_kday = quote_ctx.get_history_kline(idx_sh, start=start_date, end=end_date, ktype="K_DAY", autype='qfq')
+    ret, cyb_kday = quote_ctx.get_history_kline(idx_cyb, start=start_date, end=end_date, ktype="K_DAY", autype='qfq')
 
-index = range(len(cov))
-# fig = plt.figure()
-# ax = fig.subplots()
-locator= MultipleLocator(1)
-# ax.xaxis.set_minor_locator(xmajorLocator)
-# ax.xaxis.grid(True, which='minor')
+    # stock_kday_close = get_stock_kline(stock_code, start_date, end_date)
 
-plt.close()
+    # _, k1m_1 = quote_ctx.get_history_kline('SZ.300077', start="2018-04-19", end="2018-04-19", ktype="K_1M", autype='qfq')
+    # print(k1m_1)
+    plate = sz_kday
 
-ax=plt.subplot(3,1,1)
-xmajorLocator= MultipleLocator(1)
-ax.xaxis.set_minor_locator(locator)
-ax.xaxis.grid(True, which='minor')
-plt.title(idx_cyb)
-plt.plot(index, cyb_kday['close'])
-plt.grid()
-
-ax=plt.subplot(3,1,2)
-xmajorLocator= MultipleLocator(1)
-ax.xaxis.set_minor_locator(locator)
-ax.xaxis.grid(True, which='minor')
-plt.title(stock_code)
-plt.plot(index, stock_kday['close'])
-plt.grid()
-for p in bs_point:
-    if p[2] == 1:
-        plt.plot(p[0],p[1], "r*")
-    elif p[2] == -1:
-        plt.plot(p[0], p[1], "g*")
-    elif p[2] == -2:
-        plt.plot(p[0], p[1], "b*")
-
-plt.plot(index, norm_fund, "r")
-
-ax=plt.subplot(3,1,3)
-xmajorLocator= MultipleLocator(1)
-ax.xaxis.set_minor_locator(locator)
-ax.xaxis.grid(True, which='minor')
-plt.title("cov")
-plt.plot(index, cov)
-plt.grid()
+    cov, valid_days = get_cov(stock_code, idx_cyb, start_date, end_date)
+    # print(" cov len:" , len(cov))
 
 
-quote_ctx.close()
-# print(cov)
-# print(bs_point)
-plt.show()
+    bs_point = get_buy_sell_point(cov, stock_kday, plate)
 
+    fund = backtesting(bs_point, stock_kday, 100000)
+    print(" totol fund: " , fund[-1])
+
+    ### print mat
+    norm_fund = fund / fund[0] * stock_kday['close'][0] #标准化成和stock_kday一样大，便于比较
+
+    index = range(len(cov))
+    # fig = plt.figure()
+    # ax = fig.subplots()
+    locator= MultipleLocator(1)
+    # ax.xaxis.set_minor_locator(xmajorLocator)
+    # ax.xaxis.grid(True, which='minor')
+
+    plt.close()
+
+    ax=plt.subplot(3,1,1)
+    xmajorLocator= MultipleLocator(1)
+    ax.xaxis.set_minor_locator(locator)
+    ax.xaxis.grid(True, which='minor')
+    plt.title(idx_cyb)
+    plt.plot(index, cyb_kday['close'])
+    plt.grid()
+
+    ax=plt.subplot(3,1,2)
+    xmajorLocator= MultipleLocator(1)
+    ax.xaxis.set_minor_locator(locator)
+    ax.xaxis.grid(True, which='minor')
+    plt.title(stock_code)
+    plt.plot(index, stock_kday['close'])
+    plt.grid()
+    for p in bs_point:
+        if p[2] == 1:
+            plt.plot(p[0],p[1], "r*")
+        elif p[2] == -1:
+            plt.plot(p[0], p[1], "g*")
+        elif p[2] == -2:
+            plt.plot(p[0], p[1], "b*")
+
+    plt.plot(index, norm_fund, "r")
+
+    ax=plt.subplot(3,1,3)
+    xmajorLocator= MultipleLocator(1)
+    ax.xaxis.set_minor_locator(locator)
+    ax.xaxis.grid(True, which='minor')
+    plt.title("cov")
+    plt.plot(index, cov)
+    plt.grid()
+
+
+    quote_ctx.close()
+    # print(cov)
+    # print(bs_point)
+    plt.show()
