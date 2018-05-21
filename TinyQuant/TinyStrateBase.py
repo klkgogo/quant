@@ -82,7 +82,7 @@ class TinyStrateBase(object):
         """日k线的array manager数据"""
         return self._quant_frame.get_kl_day_am(symbol)
 
-    def buy(self, price, volume, symbol, price_mode=PriceRegularMode.UPPER):
+    def buy(self, price, volume, symbol, price_mode=PriceRegularMode.UPPER, order_type =0, datetime=None):
         """买入
         :param price: 报价，浮点数 精度0.001
         :param volume: 数量（股）
@@ -93,9 +93,9 @@ class TinyStrateBase(object):
         ret == 0 , data = order_id
         ret != 0 , data = 错误字符串
         """
-        return self._quant_frame.buy(price, volume, symbol, price_mode)
+        return self._quant_frame.buy(price, volume, symbol, price_mode, order_type, datetime=datetime)
 
-    def sell(self, price, volume, symbol, price_mode=PriceRegularMode.LOWER):
+    def sell(self, price, volume, symbol, price_mode=PriceRegularMode.LOWER, datetime=None):
         """卖出
         :param price: 报价，浮点数 精度0.001
         :param volume: 数量（股）
@@ -106,7 +106,7 @@ class TinyStrateBase(object):
         ret == 0 , data = order_id
         ret != 0 , data = 错误字符串
         """
-        return self._quant_frame.sell(price, volume, symbol, price_mode)
+        return self._quant_frame.sell(price, volume, symbol, price_mode, datetime=datetime)
 
     def cancel_order(self, order_id):
         """取消订单
@@ -133,6 +133,13 @@ class TinyStrateBase(object):
         :return: TinyPosition 对象，找不到就返回None
         '''
         return self._quant_frame.get_tiny_position(symbol)
+
+    def get_power(self):
+        """得到够买力"""
+        return self._quant_frame.get_power()
+
+    def get_last_price(self, code):
+        return self._quant_frame.get_last_price(code)
 
     def log(self, content):
         """写log的接口"""

@@ -3,19 +3,23 @@ import math
 
 def change_ratio(data):
     d = np.diff(data)
-    print("diff ", d)
     ratio = [d[i] / data[i] * 100 for i in range(len(d))]
     return ratio
 
 
-def accumulate_ratio_(cur, last):
+def accumulate_ratio_(cur_change_rate, last_acc_change_rate):
     #cur和last的符号相等，反回两个的相加，若不相等返回cur
-    if cur * last > 0:
-        return cur + last
+    if cur_change_rate == 0:
+        return last_acc_change_rate
+
+    factor = cur_change_rate * last_acc_change_rate
+    if factor > 0:
+        return cur_change_rate + last_acc_change_rate
     else:
-        return cur
+        return cur_change_rate
 
 def accumulate_ratio(data):
+    #  计算连续上涨和下跌的累加幅度
     last = 0
     ret = np.zeros(len(data))
     for i in range(len(data)):
@@ -24,7 +28,7 @@ def accumulate_ratio(data):
     return ret
 
 def smooth_accumulate_ratio_(cur_ratio, cur_acc_ratio, cur_up_down_count, last_smooth, thresh):
-    if not last_smooth == 0 and math.fabs(cur_acc_ratio / last_smooth) < thresh:
+    if not last_smooth == 0  and (abs(cur_acc_ratio) < 0.1 or math.fabs(cur_acc_ratio / last_smooth) < thresh) and abs(cur_up_down_count) < 3:
         #上涨和下跌过程回调幅度小于thresh认为是过程中的小毛刺，不改变上涨和下跌趋势
         return last_smooth + cur_ratio
     else:
@@ -44,25 +48,31 @@ def smooth_accumulate_ratio(ratio, acc_ratio, up_down_count, thresh):
         last_smooth = ret[i]
     return ret
 
-def up_down_count_(cur, last):
-    if cur * last > 0:
-        if cur > 0:
-            return last + 1
+def up_down_count_(cur_change_rate, last_count):
+    factor = cur_change_rate * last_count
+    if factor > 0:
+        if cur_change_rate > 0:
+            return int(last_count + 1)
         else:
-            return last - 1
-    else:
-        if cur > 0:
+            return int(last_count - 1)
+    elif factor < 0:
+        if cur_change_rate > 0:
             return 1
         else:
             return -1
+    else:
+        if last_count > 0:
+            return int(last_count + 1)
+        else:
+            return int(last_count - 1)
 
 
-def up_down_count(data):
+def up_down_count(change_rate):
     #连续上涨和下跌的次数1为上涨1次，-1为下跌一次
     last = 0
-    ret = np.zeros(len(data))
-    for i in range(len(data)):
-        ret[i] = up_down_count_(data[i], last)
+    ret = np.zeros(len(change_rate))
+    for i in range(len(change_rate)):
+        ret[i] = up_down_count_(change_rate[i], last)
         last = ret[i]
     return ret
 

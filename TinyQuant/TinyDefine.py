@@ -39,8 +39,8 @@ TRADE_DIRECT_BUY = 'buy'
 TRADE_DIRECT_SELL = 'sell'
 
 # 定义array_manager中的kline数据最大个数
-MAP_KLINE_SIZE = {KTYPE_DAY: 200,
-                  KTYPE_MIN1: 3000,
+MAP_KLINE_SIZE = {KTYPE_DAY: 100,
+                  KTYPE_MIN1: 1000,
                   KTYPE_MIN5: 1000,
                   KTYPE_MIN15: 500,
                   KTYPE_MIN30: 500,
@@ -145,3 +145,17 @@ class TinyPosition(object):
         self.price = 0
         self.market_value = 0
 
+
+class TradeHistory(object):
+    """交易历史"""
+    def __init__(self):
+        super(TradeHistory, self).__init__()
+        self.symbol = ''
+        self.buy_price = 0
+        self.sell_price = 0
+        self.earn = 0
+        self.volume = 0
+        self.buy_index = 0
+        self.sell_index = 0
+        self.sell_datetime = None
+        self.buy_datetime = None

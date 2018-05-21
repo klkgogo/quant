@@ -18,7 +18,7 @@ SMOOTH_THRESH = 0.3
 BUY_THRESH = -3
 
 
-class ReboundStrate(TinyStrateBase):
+class ReboundStrateWarrant(TinyStrateBase):
     """策略名称, setting.json中作为该策略配置的key"""
     name = 'rebound_strate'
 
@@ -32,9 +32,9 @@ class ReboundStrate(TinyStrateBase):
 
     params_pools = {
         'HK.00700': {'buy_thresh': -0.5, 'smooth_buy_thresh': -0.5, 'sell_thresh': -0.3, 'dyn_thresh_factor': 10,
-                     'lot_size': 100, 'target': 'HK.11343'}
+                     'lot_size': 100, 'target': 'HK.11343', 'target_vol' : 100000}
         , 'HK.00175': {'buy_thresh': -1, 'smooth_buy_thresh': -1, 'sell_thresh': -0.3, 'dyn_thresh_factor': 12,
-                       'lot_size': 1000, 'target': 'HK.12734'}}
+                       'lot_size': 1000, 'target': 'HK.12734', 'target_vol' : 100000}}
 
 
     def __init__(self):

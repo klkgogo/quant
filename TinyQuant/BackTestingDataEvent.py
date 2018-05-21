@@ -107,10 +107,14 @@ class BackTestingDataEvent(object):
         # str_start = dt_start.strftime("%Y-%m-%d")
         # str_end = dt_now.strftime("%Y-%m-%d")
         for date in self._trading_days:
-            # print("generate data: ", date)
+            # self.log("generate data: ", date)
+            data_pools ={}
+            for symbol in self._symbol_pools:
+                ret, data = self._quote_context.get_history_kline(code=symbol, start=date, end=date, ktype=KTYPE_MIN1,
+                                                                  autype='qfq')
+                data['k_type'] = KTYPE_MIN1
+                data_pools[symbol] = data
 
-            ret, data = self._quote_context.get_history_kline(code='HK.00700', start=date, end=date, ktype=KTYPE_MIN1,
-                                                              autype='qfq')
             self._cur_date = date
             d = datetime.strptime(date, "%Y-%m-%d")
             t = d.timetuple()
@@ -118,21 +122,32 @@ class BackTestingDataEvent(object):
             timeStamp = float(str(timeStamp) + str("%06d" % d.microsecond)) / 1000000
             event = Event(type_=EVENT_BEFORE_TRADING)
             event.dict_['TimeStamp'] = timeStamp
-            self._event_engine.put_process_data(event)
+            # self._event_engine.put_process_data(event)
             self._rebuild_sym_kline_all()
+            self._tiny_strate._TinyStrateBase__event_before_trading(event)
             # print("raw data shape:", data)
             # futu_data_event = self
-            if ret == 0:
                 # with GLOBAL.dt_lock:
-                for ix, row in data.iterrows():
-                    # print("genertator push: ", row['code'], " close=", row['close'], " dt=", row['time_key'])
-                    row['k_type'] = KTYPE_MIN1
+            count = data.shape[0]
+            if len(self._symbol_pools) == 1:
+                # 如果只有一支股票采用iterrows加快速度
+                symbol = self._symbol_pools[0]
+                for ix, row in data_pools[symbol].iterrows():
                     content = pd.DataFrame([row])
                     self.process_curkline(content)
+            else:
+                for ix in range(count):
+                    # print("genertator push: ", row['code'], " close=", row['close'], " dt=", row['time_key'])
+                    for symbol in self._symbol_pools:
+                        data = data_pools[symbol]
+                        row = data.iloc[ix].copy()
+                        content = pd.DataFrame([row])
+                        self.process_curkline(content)
 
             event = Event(type_=EVENT_AFTER_TRADING)
             event.dict_['TimeStamp'] = timeStamp
-            self._event_engine.put_data(event)
+            # self._event_engine.put_data(event)
+            self._tiny_strate._TinyStrateBase__event_after_trading(event)
 
         event = Event(type_=EVENT_BACKTESTING_DATA_EMIT_END)
         self._event_engine.put_process_data(event)
@@ -224,7 +239,9 @@ class BackTestingDataEvent(object):
         # self._sym_kline_last_am_bar_dic[symbol][ktype] = last_am_bar
 
     def run(self):
-        self._data_thread.start()
+        # self._data_thread.start()
+        self.__run_data_generator()
+
 
     def log(self, content):
         content = self.name + ':' + content
@@ -317,7 +334,6 @@ class BackTestingDataEvent(object):
             # print(TinyStrateBase.__dict__)
 
     def _rebuild_sym_kline_all(self):
-        print("_rebuild_sym_kline_all")
         for symbol  in  self._symbol_pools:
             for ktype in [KTYPE_DAY, KTYPE_MIN1]:
                 self._rebuild_sym_kline_am(symbol, ktype)

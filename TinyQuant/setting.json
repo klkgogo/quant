@@ -28,8 +28,8 @@
     {
         "_api_ip": "192.168.56.2",
         "_api_port": 11111,
-        "_market": "US",
-        "_env_type": 0,
+        "_market": "HK",
+        "_env_type": 1,
         "_trade_password":"111111",
         "_start_date":"",
         "_end_date":"",

@@ -17,6 +17,9 @@ from threading import Thread
 from time import sleep
 from collections import defaultdict
 
+INIT_POWER = 100000
+FEE = 30
+
 class TinyBackTestingFrame(object):
     """策略frame"""
     settingFileName = 'setting.json'
@@ -47,6 +50,9 @@ class TinyBackTestingFrame(object):
         self._is_init = self.__loadSetting()
         self._start_date = start_date
         self._end_date = end_date
+        self.power = INIT_POWER
+        self.position_list={}
+        self.trade_history=[]
         if self._is_init:
             self.__initLogEngine()
             self._tiny_strate.init_strate(self._global_settings, self, self._event_engine)
@@ -68,8 +74,15 @@ class TinyBackTestingFrame(object):
         """日k线的array manager数据"""
         return self._futu_data_event.get_kl_day_am(symbol)
 
-    def buy(self, price, volume, symbol, price_mode=PriceRegularMode.UPPER):
+    def buy(self, price, volume, symbol, price_mode=PriceRegularMode.UPPER, datetime = None):
         """买入"""
+        pos = TinyPosition()
+        pos.price = price
+        pos.position = volume
+        pos.symbol = symbol
+        pos.frozen = 0
+        self.position_list[symbol] = pos
+        self.power = self.power - price * volume
         # ret = None
         # data = None
         # if self._market == MARKET_HK:
@@ -87,8 +100,23 @@ class TinyBackTestingFrame(object):
         # return 0, order_id
         pass
 
-    def sell(self, price, volume, symbol, price_mode=PriceRegularMode.LOWER):
+    def sell(self, price, volume, symbol, price_mode=PriceRegularMode.LOWER, datetime = None):
         """卖出"""
+        pos = self.position_list[symbol]
+        self.power = self.power + volume * price - FEE
+        pos.position -= volume
+        if pos.position == 0:
+            self.position_list.pop(symbol)
+
+        history = TradeHistory()
+        history.symbol = symbol
+        history.buy_price = pos.price
+        history.sell_price = price
+        history.volume = volume
+        history.earn = volume * (history.sell_price - history.buy_price)
+        history.sell_datetime = datetime
+        self.trade_history.append(history)
+
         # ret = -1
         # data = None
         # if self._market == MARKET_HK:
@@ -164,15 +192,14 @@ class TinyBackTestingFrame(object):
         #     pos.market_value = float(row['market_val'])
         #     return pos
         # return None
-        pass
+        return self.position_list[symbol]
+
+    def get_power(self):
+        """得到购买力"""
+        return self.power
 
     def writeCtaLog(self, content):
-        log = VtLogData()
-        log.logContent = content
-        log.gatewayName = 'FUTU'
-        event = Event(type_=EVENT_TINY_LOG)
-        event.dict_['data'] = log
-        self._event_engine.put(event)
+        print(content)
 
     def __loadSetting(self):
         """读取策略配置"""
@@ -283,12 +310,40 @@ class TinyBackTestingFrame(object):
         # 启动事件引擎
         if self._is_init and not self._is_start:
             self._is_start = True
-            self._event_engine.put(Event(type_=EVENT_INI_FUTU_API))
-            self._event_engine.start()
+            # self._event_engine.put(Event(type_=EVENT_INI_FUTU_API))
+            self._process_init_api(Event(type_=EVENT_INI_FUTU_API))
+            # self._event_engine.start()
 
+        self.print_result()
         print("frame run exit")
 
-
+    def print_result(self):
+        total = 0
+        total_fee = 0
+        max_profit = 0
+        max_lost = 0
+        win_count = 0
+        lost_count = 0
+        for history in self.trade_history:
+            print("%s %s buy_price: %.2f sell_price: %.2f vol: %d profit %.2f"
+                  % (history.sell_datetime.strftime('%Y-%m-%d'), history.symbol, history.buy_price,
+                     history.sell_price, history.volume, history.earn))
+            total += history.earn
+            total_fee += FEE
+            if history.earn > max_profit:
+                max_profit = history.earn
+            if history.earn < max_lost:
+                max_lost  = history.earn
+            if history.earn > 0:
+                win_count += 1
+            else:
+                lost_count += 1
+        print("max win: %.2f, max lost: %.2f" % (max_profit, max_lost))
+        total_count = win_count + lost_count
+        print("order total: %d, win: %d, lost: %d win rate: %.2f%%" % (total_count, win_count, lost_count, win_count / total_count * 100))
+        print("total profit: %.2f, fee:%.2f" % (total, total_fee))
+        print("profit with fee: %.2f" % (total - total_fee))
+        print("final power: %.2f" % (self.power))
 
 class EventEngine3(object):
     """

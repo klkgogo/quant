@@ -61,12 +61,12 @@ class TinyQuantFrame(object):
         """日k线的array manager数据"""
         return self._futu_data_event.get_kl_day_am(symbol)
 
-    def buy(self, price, volume, symbol, price_mode=PriceRegularMode.UPPER):
+    def buy(self, price, volume, symbol, price_mode=PriceRegularMode.UPPER, order_type=0,  datetime = None):
         """买入"""
         ret = None
         data = None
         if self._market == MARKET_HK:
-            ret, data = self._trade_ctx.place_order(price=price, qty=volume, strcode=symbol, orderside=0, ordertype=0,
+            ret, data = self._trade_ctx.place_order(price=price, qty=volume, strcode=symbol, orderside=0, ordertype=order_type,
                                 envtype=self._env_type, order_deal_push=False, price_mode=price_mode)
         else:
             ret, data = self._trade_ctx.place_order(price=price, qty=volume, strcode=symbol, orderside=0, ordertype=2,
@@ -79,7 +79,7 @@ class TinyQuantFrame(object):
 
         return 0, order_id
 
-    def sell(self, price, volume, symbol, price_mode=PriceRegularMode.LOWER):
+    def sell(self, price, volume, symbol, price_mode=PriceRegularMode.LOWER, datetime = None):
         """卖出"""
         ret = -1
         data = None
@@ -153,6 +153,16 @@ class TinyQuantFrame(object):
             pos.market_value = float(row['market_val'])
             return pos
         return None
+
+    def get_power(self):
+        """得到购买力"""
+        ret_code, ret_data = self._trade_ctx.accinfo_query(self._env_type)
+        return ret_data['Power']
+
+    def get_last_price(self, code):
+        ret_code, ret_data = self._quote_ctx.get_market_snapshot([code])
+        last_price = ret_data['last_price'][0]
+        return last_price
 
     def writeCtaLog(self, content):
         log = VtLogData()
