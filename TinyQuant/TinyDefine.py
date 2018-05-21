@@ -145,6 +145,17 @@ class TinyPosition(object):
         self.price = 0
         self.market_value = 0
 
+class TradeInfo(object):
+    """交易信息"""
+    def __init__(self):
+        super(TradeInfo, self).__init__()
+        self.symbol = ''
+        self.warrant_stock = '' # 如果是涡轮，对应的正股， 如果不是涡轮空
+        self.price = 0         # symbol的价格
+        self.price_stock = 0   # 如果是涡轮，对应正股的价格
+        self.volume = 0
+        self.index = 0      # am cache看的index，如果是涡轮，是对应正股的am index
+        self.datetime = None
 
 class TradeHistory(object):
     """交易历史"""

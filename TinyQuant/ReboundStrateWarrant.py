@@ -32,9 +32,9 @@ class ReboundStrateWarrant(TinyStrateBase):
 
     params_pools = {
         'HK.00700': {'buy_thresh': -0.5, 'smooth_buy_thresh': -0.5, 'sell_thresh': -0.3, 'dyn_thresh_factor': 10,
-                     'lot_size': 100, 'target': 'HK.11343', 'target_vol' : 100000}
+                     'lot_size': 100, 'war_call': 'HK.11343', 'call_vol': 100000, 'war_put': 'HK.12457', 'put_vol': 100000}
         , 'HK.00175': {'buy_thresh': -1, 'smooth_buy_thresh': -1, 'sell_thresh': -0.3, 'dyn_thresh_factor': 12,
-                       'lot_size': 1000, 'target': 'HK.12734', 'target_vol' : 100000}}
+                       'lot_size': 1000, 'war_call': 'HK.12734', 'call_vol': 100000, 'war_put': 'HK.12457', 'put_vol': 100000}}
 
 
     def __init__(self):
@@ -229,7 +229,7 @@ class ReboundStrateWarrant(TinyStrateBase):
             if close > self.highest_track[symbol]:
                 self.highest_track[symbol] = close
 
-    def buy_decide(self, tiny_bar):
+    def buy_decide(self, tiny_bar, minute = 0):
         bar = tiny_bar
         symbol = bar.symbol
 
@@ -244,11 +244,14 @@ class ReboundStrateWarrant(TinyStrateBase):
         drop_rate_thresh = 0.1
         avg_drop_rate = last_acc_ratio / last_udc
         if this_acc_ratio > 0 and avg_drop_rate > drop_rate_thresh and (last_acc_ratio < params['buy_thresh'] or last_smooth_acc < params['smooth_buy_thresh']):
+            self.log("buy decide true, symbol:%s, price:%.2f, acc_ratio:%.3f,  last_acc_ratio:%.2f, drop_rate:%.2f" % (
+            tiny_bar.symbol, tiny_bar.close, this_acc_ratio, last_acc_ratio, avg_drop_rate))
             return True
         else:
             return False
 
     def sell_decide(self, tiny_bar, symbol, minute):
+        """固定阈值"""
         params = self.params_pools[symbol]
         change_to_max = (tiny_bar.close - self.highest_track[symbol]) / self.highest_track[symbol] * 100
         if change_to_max < params["sell_thresh"] or minute >= 959:  # 16:59分，收市前一分钟卖出
@@ -257,6 +260,7 @@ class ReboundStrateWarrant(TinyStrateBase):
             return False
 
     def sell_decide2(self, tiny_bar, symbol, minute):
+        """动态阈值，跌幅越大，阈值越大"""
         params = self.params_pools[symbol]
         change_to_max = (tiny_bar.close - self.highest_track[symbol]) / self.highest_track[symbol] * 100
         pos = self.position_list[symbol]
@@ -271,6 +275,65 @@ class ReboundStrateWarrant(TinyStrateBase):
         else:
             return False
 
+    def buy_decide_warrant(self, tiny_bar, minute=0):
+        if minute > 0 and minute < 600:
+            """早上10：00前，只要上涨立马买入"""
+            cache = self.cache_data[tiny_bar.symbol]
+            this_cache = cache.iloc[-1]
+            this_acc_ratio = this_cache['accumulate_change_ratio']
+            if (this_acc_ratio > 0):
+                self.log("buy decide true, symbol:%s, price:%.2f, acc_ratio:%.3f" %(tiny_bar.symbol, tiny_bar.close, this_acc_ratio))
+                return True
+
+        return self.buy_decide(tiny_bar)
+
+
+    def sell_decide_warrant(self, tiny_bar, symbol, minute):
+        """涡轮卖出信号，只要下跌立马卖出"""
+        cache = self.cache_data[symbol]
+        this_cache = cache.iloc[-1]
+        this_acc_ratio = this_cache['accumulate_change_ratio']
+        if this_acc_ratio < 0 or minute >= 959:  # 15:59分，收市前一分钟卖出
+            return True
+        else:
+            return False
+
+    def buy_stock(self, tiny_bar, call_or_put):
+        bar = tiny_bar
+        symbol = bar.symbol
+        params = self.params_pools[symbol]
+        if call_or_put == 'call':
+            buy_target = params['war_call']
+            buy_volume = params['call_vol']
+        else:
+            buy_target = params['war_put']
+            buy_volume = params['put_vol']
+
+        price = self.get_last_price(buy_target)
+        price = price + 0.004
+        self.buy(price, buy_volume, buy_target)  # 竞价单
+        am = self.get_kl_min1_am(symbol)
+        info = TradeInfo()
+        info.symbol = buy_target
+        info.warrant_stock = symbol
+        info.price = price
+        info.price_stock = bar.close
+        info.volume = buy_volume
+        info.index = am.count - 1
+        info.datetime = bar.datetime
+        self.buying_list[symbol] = info
+
+    def sell_stock(self, tiny_bar, call_or_put):
+        bar = tiny_bar
+        symbol = bar.symbol
+        pos_info = self.position_list[symbol]
+        last_price = self.get_last_price(pos_info.price)
+        last_price = last_price - 0.004
+        self.sell(last_price, pos_info.volume, pos_info.symbol, datetime=tiny_bar.datetime)
+        sell_info = pos_info
+        self.selling_list[symbol] = sell_info
+        self.position_list.pop(symbol)
+
     def buy_impl(self, tiny_bar):
         minute = tiny_bar.datetime.hour * 60 + tiny_bar.datetime.minute # 从凌晨00：00到现在的分钟数
         # 16:55分，收市前5分钟, 不要买入股票
@@ -282,30 +345,16 @@ class ReboundStrateWarrant(TinyStrateBase):
         params = self.params_pools[symbol]
         if self.buy_decide(tiny_bar):
             power = self.get_power()
-            volume = math.floor(power / bar.close / params['lot_size']) * params['lot_size']
-            if volume > 0:
-                # self.buy(bar.close, volume, symbol)
-                # by warrant target
-                price = self.get_last_price(params['target'])
-                price = price + 0.004
-                self.buy(price, 100000, params['target']) #竞价单
-                am = self.get_kl_min1_am(symbol)
-                order = dict()
-                order['prize'] = bar.close
-                order['vol'] = volume
-                order['symbol'] = symbol
-                order['datetime'] = bar.datetime
-                order['index'] = am.count - 1
-
-                cache = self.cache_data[symbol]
-                last_cache = cache.iloc[-2]
-                last_smooth_acc = last_cache['smooth_accumulate_change_ratio']
-                sell_thresh = last_smooth_acc / params['dyn_thresh_factor']
-
-                self.buying_list[symbol] = order
-                self.highest_track[symbol] = bar.close
-                self.log("buy %s, price: %.2f, volume: %d, index: %d, sell_thresh:%.5f"
-                      % (symbol, bar.close, volume, order['index'], sell_thresh))
+            # volume = math.floor(power / bar.close / params['lot_size']) * params['lot_size']
+            self.buy_stock(tiny_bar, 'call')
+            cache = self.cache_data[symbol]
+            last_cache = cache.iloc[-2]
+            last_smooth_acc = last_cache['smooth_accumulate_change_ratio']
+            sell_thresh = last_smooth_acc / params['dyn_thresh_factor']
+            self.highest_track[symbol] = bar.close
+            am = self.get_kl_min1_am(symbol)
+            self.log("buy %s, price: %.2f, volume: %d, index: %d, sell_thresh:%.5f"
+                         % (symbol, bar.close,  am.count - 1, sell_thresh))
 
     def sell_impl(self, tiny_bar):
         bar = tiny_bar
@@ -317,64 +366,54 @@ class ReboundStrateWarrant(TinyStrateBase):
         pos = self.position_list[symbol]
         minute = tiny_bar.datetime.hour * 60 + tiny_bar.datetime.minute # 从凌晨00：00到现在的分钟数
         if pos is not None:
-            if self.sell_decide2(bar, symbol, minute):
-                param = self.params_pools[symbol]
-                tiny_pos = self.get_tiny_position(param['target'])
-                # self.sell(bar.close, pos['position'], symbol, datetime=tiny_bar.datetime)
-                last_price = self.get_last_price(param['target'])
-                last_price = last_price - 0.004
-                self.sell(last_price, tiny_pos.position, param['target'], datetime=tiny_bar.datetime)
+            if self.sell_decide_warrant(bar, symbol, minute):
+                self.sell_stock(tiny_bar, "call")
 
-                order = dict()
-                order['prize'] = bar.close
-                order['vol'] = pos['position']
-                order['symbol'] = symbol
-                order['timestamp'] = bar.datetime
-                self.position_list.pop(symbol)
-                self.selling_list[symbol] = order
-                earn = pos['position'] * ( bar.close - pos['price'])
                 am = self.get_kl_min1_am(symbol)
                 power = self.get_power()
-                self.log("index=%d, sell %s, sell price: %.2f, buy_price: %.2f, volume: %d, earn: %.2f, power: %.2f"
-                      % (am.count - 1, symbol, bar.close, pos['price'],  pos['position'], earn, power))
+                self.log("sell %s. index=%d, sell price: %.2f, buy_price: %.2f, power: %.2f"
+                      % (symbol, am.count - 1, bar.close, pos.price_stock, power))
                 history = TradeHistory()
-                history.volume = pos['position']
-                history.symbol = symbol
+                history.volume = pos.volume
+                history.symbol = pos.symbol
                 history.sell_price = bar.close
-                history.buy_price = pos['price']
+                history.buy_price = pos.price_stock
                 history.sell_index = am.count - 1
                 history.buy_index = pos['index']
-                history.earn = history.volume * (history.sell_price - history.buy_price)
+                history.earn = history.sell_price - history.buy_price
                 history.sell_datetime = tiny_bar.datetime
-                history.buy_datetime = pos['datetime']
+                history.buy_datetime = pos.datetime
                 if symbol not in self.trade_history.keys():
                     self.trade_history[symbol]=[]
                 self.trade_history[symbol].append(history)
+                self.selling_list.pop(symbol) #假设一定能卖成功
 
 
     def check_position(self, tiny_bar):
+        # 检测成交数量
         bar = tiny_bar
         symbol = bar.symbol
         if symbol not in self.buying_list.keys():
             return
 
-        buy_info = self.buying_list[symbol]
+        buying_info = self.buying_list[symbol]
+        buying_volume = buying_info.volume
         pos = self.get_tiny_position(symbol)
         if pos is None:
             # TODO cancel order
             return
 
-        _pos = dict()
-        _pos['price'] = pos.price
-        _pos['position'] = pos.position
-        _pos['symbol'] = pos.symbol
-        _pos['index'] = buy_info['index']
-        _pos['datetime'] = buy_info['datetime']
-        if pos.position != buy_info['vol']: #下单数量和成交数量不一样
+        pos_info = buying_info
+
+        # 将下单价格和量修改为成交价格和量
+        pos_info.price = pos.price
+        pos_info.volume = pos.position
+
+        if pos.position != buying_volume: #下单数量和成交数量不一样
             # TODO cancel order
             pass
         self.buying_list.pop(symbol)
-        self.position_list[symbol] = _pos
+        self.position_list[symbol] = pos_info
 
     def get_position_mask(self, trade_list, bar_count):
         mask = np.zeros(bar_count)
