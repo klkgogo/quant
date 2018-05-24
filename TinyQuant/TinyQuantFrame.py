@@ -161,6 +161,8 @@ class TinyQuantFrame(object):
 
     def get_last_price(self, code):
         ret_code, ret_data = self._quote_ctx.get_market_snapshot([code])
+        print('get_last_price ', ret_code)
+        print(ret_data)
         last_price = ret_data['last_price'][0]
         return last_price
 

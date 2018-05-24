@@ -6,7 +6,7 @@
 
 from TinyQuantFrame import *
 from ReboundStrate import *
-
+from ReboundStrateWarrant import *
 if __name__ == '__main__':
     my_strate = ReboundStrateWarrant()
     frame = TinyQuantFrame(my_strate)

@@ -23,22 +23,22 @@ class ReboundStrateWarrant(TinyStrateBase):
     name = 'rebound_strate'
 
     """策略需要用到行情数据的股票池"""
-    symbol_pools = ['HK.00700', 'HK.00175']
+    # symbol_pools = ['HK.00700', 'HK.00175']
     # symbol_pools = ['HK.00175', 'HK.00700']
-    # symbol_pools = ['HK.00700']
+    symbol_pools = ['HK.00700']
     # params_pools = {'HK.00700': {'buy_thresh' : -1, 'smooth_buy_thresh' : -1.5 ,'sell_thresh': -0.3, 'dyn_thresh_factor':5,'lot_size':100}
     #           ,'HK.00175': {'buy_thresh' : -2, 'smooth_buy_thresh' : -2, 'sell_thresh': -0.3, 'dyn_thresh_factor':12, 'lot_size':1000} }
     # symbol_pools = ['US.FB', 'US.BABA']
 
     params_pools = {
         'HK.00700': {'buy_thresh': -0.5, 'smooth_buy_thresh': -0.5, 'sell_thresh': -0.3, 'dyn_thresh_factor': 10,
-                     'lot_size': 100, 'war_call': 'HK.11343', 'call_vol': 100000, 'war_put': 'HK.12457', 'put_vol': 100000}
+                     'lot_size': 100, 'war_call': 'HK.11074', 'call_vol': 100000, 'war_put': 'HK.12457', 'put_vol': 100000}
         , 'HK.00175': {'buy_thresh': -1, 'smooth_buy_thresh': -1, 'sell_thresh': -0.3, 'dyn_thresh_factor': 12,
                        'lot_size': 1000, 'war_call': 'HK.12734', 'call_vol': 100000, 'war_put': 'HK.12457', 'put_vol': 100000}}
 
 
     def __init__(self):
-       super(ReboundStrate, self).__init__()
+       super(ReboundStrateWarrant, self).__init__()
 
        """请在setting.json中配置参数"""
        self.param1 = None
@@ -115,7 +115,7 @@ class ReboundStrateWarrant(TinyStrateBase):
         str_dt = bar.datetime.strftime("%H:%M:%S")
         str_now = dt.datetime.now().strftime("%H:%M:%S")
         params = self.params_pools[symbol]
-        self.buy(0, 100000, params['target'], order_type=1)  # 竞价单
+        # self.buy(0, 100000, params['target'], order_type=1)  # 竞价单
 
         # 计算策略指标
         self.calc_index(tiny_bar)
@@ -177,6 +177,7 @@ class ReboundStrateWarrant(TinyStrateBase):
 
         # self.log(str_log)
         self.trade_history = dict()
+        self.init_position()
 
     def on_after_trading(self, date_time):
         """收盘时触发一次回调, 港股是16:00:00"""
@@ -276,12 +277,14 @@ class ReboundStrateWarrant(TinyStrateBase):
             return False
 
     def buy_decide_warrant(self, tiny_bar, minute=0):
-        if minute > 0 and minute < 600:
-            """早上10：00前，只要上涨立马买入"""
+        if minute > 575 and minute < 590:
+            """早上9:35后，10：00前，只要上涨立马买入"""
             cache = self.cache_data[tiny_bar.symbol]
             this_cache = cache.iloc[-1]
+            last_cache = cache.iloc[-2]
             this_acc_ratio = this_cache['accumulate_change_ratio']
-            if (this_acc_ratio > 0):
+            last_acc_ratio = last_cache['accumulate_change_ratio']
+            if this_acc_ratio > 0 and last_acc_ratio <= 0:
                 self.log("buy decide true, symbol:%s, price:%.2f, acc_ratio:%.3f" %(tiny_bar.symbol, tiny_bar.close, this_acc_ratio))
                 return True
 
@@ -327,7 +330,7 @@ class ReboundStrateWarrant(TinyStrateBase):
         bar = tiny_bar
         symbol = bar.symbol
         pos_info = self.position_list[symbol]
-        last_price = self.get_last_price(pos_info.price)
+        last_price = self.get_last_price(pos_info.symbol)
         last_price = last_price - 0.004
         self.sell(last_price, pos_info.volume, pos_info.symbol, datetime=tiny_bar.datetime)
         sell_info = pos_info
@@ -343,7 +346,8 @@ class ReboundStrateWarrant(TinyStrateBase):
         bar = tiny_bar
         symbol = bar.symbol
         params = self.params_pools[symbol]
-        if self.buy_decide(tiny_bar):
+        # if self.buy_decide(tiny_bar):
+        if self.buy_decide_warrant(tiny_bar, minute):
             power = self.get_power()
             # volume = math.floor(power / bar.close / params['lot_size']) * params['lot_size']
             self.buy_stock(tiny_bar, 'call')
@@ -354,7 +358,7 @@ class ReboundStrateWarrant(TinyStrateBase):
             self.highest_track[symbol] = bar.close
             am = self.get_kl_min1_am(symbol)
             self.log("buy %s, price: %.2f, volume: %d, index: %d, sell_thresh:%.5f"
-                         % (symbol, bar.close,  am.count - 1, sell_thresh))
+                         % (symbol, bar.close, 0,  am.count - 1, sell_thresh))
 
     def sell_impl(self, tiny_bar):
         bar = tiny_bar
@@ -379,7 +383,7 @@ class ReboundStrateWarrant(TinyStrateBase):
                 history.sell_price = bar.close
                 history.buy_price = pos.price_stock
                 history.sell_index = am.count - 1
-                history.buy_index = pos['index']
+                history.buy_index = pos.index
                 history.earn = history.sell_price - history.buy_price
                 history.sell_datetime = tiny_bar.datetime
                 history.buy_datetime = pos.datetime
@@ -388,6 +392,21 @@ class ReboundStrateWarrant(TinyStrateBase):
                 self.trade_history[symbol].append(history)
                 self.selling_list.pop(symbol) #假设一定能卖成功
 
+    def init_position(self):
+        for symbol in self.symbol_pools:
+            params = self.params_pools[symbol]
+            wrt_symbol = params['war_call']
+            tiny_pos = self.get_tiny_position(wrt_symbol)
+            if tiny_pos is not None and tiny_pos.position > 0:
+                self.set_tiny_pos(symbol, tiny_pos)
+
+    def set_tiny_pos(self, symbol, tiny_pos):
+        pos_info = TradeInfo()
+        pos_info.symbol = tiny_pos.symbol
+        pos_info.warrant_stock = symbol
+        pos_info.price = tiny_pos.price
+        pos_info.volume = tiny_pos.position
+        self.position_list[symbol] = pos_info
 
     def check_position(self, tiny_bar):
         # 检测成交数量
@@ -398,8 +417,8 @@ class ReboundStrateWarrant(TinyStrateBase):
 
         buying_info = self.buying_list[symbol]
         buying_volume = buying_info.volume
-        pos = self.get_tiny_position(symbol)
-        if pos is None:
+        pos = self.get_tiny_position(buying_info.symbol)
+        if pos is None or pos.position == 0:
             # TODO cancel order
             return
 
