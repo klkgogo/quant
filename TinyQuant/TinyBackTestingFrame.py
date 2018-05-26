@@ -74,7 +74,7 @@ class TinyBackTestingFrame(object):
         """日k线的array manager数据"""
         return self._futu_data_event.get_kl_day_am(symbol)
 
-    def buy(self, price, volume, symbol, price_mode=PriceRegularMode.UPPER, datetime = None):
+    def buy(self, price, volume, symbol, price_mode=PriceRegularMode.UPPER, order_type=0,  datetime = None):
         """买入"""
         pos = TinyPosition()
         pos.price = price

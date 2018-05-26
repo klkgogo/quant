@@ -27,16 +27,34 @@ def accumulate_ratio(data):
         last = ret[i]
     return ret
 
-def smooth_accumulate_ratio_(cur_ratio, cur_acc_ratio, cur_up_down_count, last_smooth, thresh):
-    if not last_smooth == 0  and (abs(cur_acc_ratio) < 0.1 or math.fabs(cur_acc_ratio / last_smooth) < thresh) and abs(cur_up_down_count) < 3:
-        #上涨和下跌过程回调幅度小于thresh认为是过程中的小毛刺，不改变上涨和下跌趋势
-        return last_smooth + cur_ratio
-    else:
-        if last_smooth * cur_ratio > 0:
-            return last_smooth + cur_ratio
-        else:
-            return cur_acc_ratio
+# def smooth_accumulate_ratio_(cur_ratio, cur_acc_ratio, cur_up_down_count, last_smooth, thresh):
+#     # if not last_smooth == 0  and (abs(cur_acc_ratio) < 0.1 or math.fabs(cur_acc_ratio / last_smooth) < thresh) and abs(cur_up_down_count) < 3:
+#     # if not last_smooth == 0 and (abs(cur_acc_ratio) < 0.1 or math.fabs(cur_acc_ratio / last_smooth) < thresh):
+#         #上涨和下跌过程回调幅度小于thresh认为是过程中的小毛刺，不改变上涨和下跌趋势
+#     if not last_smooth == 0 and (abs(cur_acc_ratio) < 0.1 or math.fabs(cur_acc_ratio / last_smooth) < thresh):
+#         return last_smooth + cur_ratio
+#     else:
+#         if last_smooth * cur_ratio > 0:
+#             return last_smooth + cur_ratio
+#         else:
+#             return cur_acc_ratio
 
+
+def smooth_accumulate_ratio_(cur_ratio, cur_acc_ratio, cur_up_down_count, last_smooth, thresh):
+    if last_smooth == 0:
+        return cur_acc_ratio
+
+    if math.fabs(cur_acc_ratio / last_smooth) > thresh and last_smooth * cur_up_down_count < 0 and math.fabs(cur_up_down_count) > 1:
+        return cur_acc_ratio
+    else:
+        return last_smooth + cur_ratio
+    # if not last_smooth == 0 and (abs(cur_acc_ratio) < 0.1 or math.fabs(cur_acc_ratio / last_smooth) < thresh):
+    #     return last_smooth + cur_ratio
+    # else:
+    #     if last_smooth * cur_ratio > 0:
+    #         return last_smooth + cur_ratio
+    #     else:
+    #         return cur_acc_ratio
 
 def smooth_accumulate_ratio(ratio, acc_ratio, up_down_count, thresh):
     #过虑下跌或上涨过程中的一些小回调，

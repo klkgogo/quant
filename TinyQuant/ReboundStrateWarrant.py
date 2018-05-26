@@ -241,10 +241,11 @@ class ReboundStrateWarrant(TinyStrateBase):
         this_acc_ratio = this_cache['accumulate_change_ratio']
         last_acc_ratio = last_cache['accumulate_change_ratio']
         last_smooth_acc = last_cache['smooth_accumulate_change_ratio']
+        this_smooth_acc = this_cache['smooth_accumulate_change_ratio']
         last_udc = last_cache['up_down_count']
         drop_rate_thresh = 0.1
         avg_drop_rate = last_acc_ratio / last_udc
-        if this_acc_ratio > 0 and avg_drop_rate > drop_rate_thresh and (last_acc_ratio < params['buy_thresh'] or last_smooth_acc < params['smooth_buy_thresh']):
+        if this_acc_ratio > 0 and this_smooth_acc < 0 and avg_drop_rate > drop_rate_thresh and (last_acc_ratio < params['buy_thresh'] or last_smooth_acc < params['smooth_buy_thresh']):
             self.log("buy decide true, symbol:%s, price:%.2f, acc_ratio:%.3f,  last_acc_ratio:%.2f, drop_rate:%.2f" % (
             tiny_bar.symbol, tiny_bar.close, this_acc_ratio, last_acc_ratio, avg_drop_rate))
             return True

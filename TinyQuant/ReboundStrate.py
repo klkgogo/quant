@@ -14,7 +14,7 @@ import math
 import datetime as dt
 COLUMNS=['close', 'change_ratio', 'accumulate_change_ratio', 'up_down_count', 'smooth_accumulate_change_ratio']
 
-SMOOTH_THRESH = 0.3
+SMOOTH_THRESH = 0.15
 BUY_THRESH = -3
 
 
@@ -23,15 +23,15 @@ class ReboundStrate(TinyStrateBase):
     name = 'rebound_strate'
 
     """策略需要用到行情数据的股票池"""
-    symbol_pools = ['HK.00700', 'HK.00175']
+    # symbol_pools = ['HK.00700', 'HK.00175']
     # symbol_pools = ['HK.00175', 'HK.00700']
-    # symbol_pools = ['HK.00700']
+    symbol_pools = ['HK.00700']
     # params_pools = {'HK.00700': {'buy_thresh' : -1, 'smooth_buy_thresh' : -1.5 ,'sell_thresh': -0.3, 'dyn_thresh_factor':5,'lot_size':100}
     #           ,'HK.00175': {'buy_thresh' : -2, 'smooth_buy_thresh' : -2, 'sell_thresh': -0.3, 'dyn_thresh_factor':12, 'lot_size':1000} }
     # symbol_pools = ['US.FB', 'US.BABA']
 
     params_pools = {
-        'HK.00700': {'buy_thresh': -0.5, 'smooth_buy_thresh': -0.5, 'sell_thresh': -0.3, 'dyn_thresh_factor': 10,
+        'HK.00700': {'buy_thresh': -1.5, 'smooth_buy_thresh': -1.5, 'sell_thresh': -0.3, 'dyn_thresh_factor': 10,
                      'lot_size': 100, 'target': 'HK.11343'}
         , 'HK.00175': {'buy_thresh': -1, 'smooth_buy_thresh': -1, 'sell_thresh': -0.3, 'dyn_thresh_factor': 12,
                        'lot_size': 1000, 'target': 'HK.12734'}}
@@ -115,21 +115,21 @@ class ReboundStrate(TinyStrateBase):
         str_dt = bar.datetime.strftime("%H:%M:%S")
         str_now = dt.datetime.now().strftime("%H:%M:%S")
         params = self.params_pools[symbol]
-        self.buy(0, 100000, params['target'], order_type=1)  # 竞价单
+        # self.buy(0, 100000, params['target'], order_type=1)  # 竞价单
 
         # 计算策略指标
         self.calc_index(tiny_bar)
 
         am = self.get_kl_min1_am(symbol)
         close = am.close[-1]
-        str_log = "on_bar_min1 symbol=%s dt=%s open=%s high=%s close=%s  am.close=%s, low=%s vol=%s, count=%s" % (
-            symbol, str_dt, bar.open, bar.high, bar.close, close, bar.low, bar.volume, am.count)
+        # str_log = "on_bar_min1 symbol=%s dt=%s open=%s high=%s close=%s  am.close=%s, low=%s vol=%s, count=%s" % (
+        #     symbol, str_dt, bar.open, bar.high, bar.close, close, bar.low, bar.volume, am.count)
         # if close != bar.close:
         #     self.log(str_log)
         # self.log(str_log)
-        self.log(str_log)
-        self.log(str(am.close[-10:]))
-        self.log("generate time: %s, process time:%s" % (str_dt, str_now))
+        # self.log(str_log)
+        # self.log(str(am.close[-10:]))
+        # self.log("generate time: %s, process time:%s" % (str_dt, str_now))
         self.check_position(tiny_bar)
         self.buy_impl(tiny_bar)
         self.sell_impl(tiny_bar)
@@ -183,6 +183,8 @@ class ReboundStrate(TinyStrateBase):
         str_log = "on_after_trading - %s" % date_time.strftime('%Y-%m-%d %H:%M:%S')
         self.log(str_log)
         self.plot_result(date_time)
+        # str_log = "on_after_trading - %s" % date_time.strftime('%Y-%m-%d %H:%M:%S')
+
 
     def sma(self, np_array, n, array=False):
         """简单均线"""
@@ -212,6 +214,8 @@ class ReboundStrate(TinyStrateBase):
         am = self.get_kl_min1_am(symbol)
         am_close = am.close[am.size - am.count:]
         last_count = self.last_am_count[symbol]
+        if last_count == 349:
+            print("hi")
         for i in range(last_count, am.count):
             last_cache = self.cache_data[symbol].iloc[-1]
             close = am_close[i]
@@ -238,12 +242,13 @@ class ReboundStrate(TinyStrateBase):
         this_cache = cache.iloc[-1]
         last_cache = cache.iloc[-2]
         this_acc_ratio = this_cache['accumulate_change_ratio']
+        this_smooth_acc = this_cache['smooth_accumulate_change_ratio']
         last_acc_ratio = last_cache['accumulate_change_ratio']
         last_smooth_acc = last_cache['smooth_accumulate_change_ratio']
         last_udc = last_cache['up_down_count']
         drop_rate_thresh = 0.1
         avg_drop_rate = last_acc_ratio / last_udc
-        if this_acc_ratio > 0 and avg_drop_rate > drop_rate_thresh and (last_acc_ratio < params['buy_thresh'] or last_smooth_acc < params['smooth_buy_thresh']):
+        if this_acc_ratio > 0 and this_smooth_acc < 0 and avg_drop_rate > drop_rate_thresh and (last_acc_ratio < params['buy_thresh'] or last_smooth_acc < params['smooth_buy_thresh']):
             return True
         else:
             return False
@@ -284,11 +289,11 @@ class ReboundStrate(TinyStrateBase):
             power = self.get_power()
             volume = math.floor(power / bar.close / params['lot_size']) * params['lot_size']
             if volume > 0:
-                # self.buy(bar.close, volume, symbol)
+                self.buy(bar.close, volume, symbol)
                 # by warrant target
-                price = self.get_last_price(params['target'])
-                price = price + 0.004
-                self.buy(price, 100000, params['target']) #竞价单
+                # price = self.get_last_price(params['target'])
+                # price = price + 0.004
+                # self.buy(price, 100000, params['target']) #竞价单
                 am = self.get_kl_min1_am(symbol)
                 order = dict()
                 order['prize'] = bar.close
@@ -319,11 +324,11 @@ class ReboundStrate(TinyStrateBase):
         if pos is not None:
             if self.sell_decide2(bar, symbol, minute):
                 param = self.params_pools[symbol]
-                tiny_pos = self.get_tiny_position(param['target'])
-                # self.sell(bar.close, pos['position'], symbol, datetime=tiny_bar.datetime)
-                last_price = self.get_last_price(param['target'])
-                last_price = last_price - 0.004
-                self.sell(last_price, tiny_pos.position, param['target'], datetime=tiny_bar.datetime)
+                # tiny_pos = self.get_tiny_position(param['target'])
+                self.sell(bar.close, pos['position'], symbol, datetime=tiny_bar.datetime)
+                # last_price = self.get_last_price(param['target'])
+                # last_price = last_price - 0.004
+                # self.sell(last_price, tiny_pos.position, param['target'], datetime=tiny_bar.datetime)
 
                 order = dict()
                 order['prize'] = bar.close
