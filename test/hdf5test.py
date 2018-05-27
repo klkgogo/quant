@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 from pandas import DataFrame, Series
 
 # 200只股票 504个交易日，服从正态分布涨跌幅数据
+# ref: http://pandas.pydata.org/pandas-docs/stable/io.html#io-hdf5
 stock_cnt = 200
 view_days = 504
 stock_day_change = np.random.standard_normal((stock_cnt, view_days))
