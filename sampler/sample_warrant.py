@@ -1,4 +1,4 @@
-import sampler.SampleTicker as st
+import SampleTicker as st
 import futuquant as ft
 import pandas as pd
 import time
@@ -59,8 +59,8 @@ def get_sample_warrant(context, code):
     return sample_list
 
 if __name__ == '__main__':
-    # context = ft.OpenQuoteContext(host='127.0.0.1', port=11111)
-    context = ft.OpenQuoteContext(host='192.168.56.2', port=11111)
+    context = ft.OpenQuoteContext(host='127.0.0.1', port=11111)
+    # context = ft.OpenQuoteContext(host='192.168.56.2', port=11111)
     code = 'HK.00700'
     stockSampler = st.StockSampler(context)
     warrant_snapshot = get_sample_warrant(context, code)
