@@ -37,20 +37,20 @@ def get_sample_warrant(context, code):
     :param code: 要采集的涡轮正股
     :return:
     """
-    NUM_SAMPLE = 100 #每种涡轮采集的数量
+    NUM_SAMPLE = 20 #每种涡轮采集的数量
     snapshot = get_warrant_snapshot(context, code)
     call = snapshot[snapshot['wrt_type'] == 'CALL']
     put = snapshot[snapshot['wrt_type'] == 'PUT']
     bull = snapshot[snapshot['wrt_type'] == 'BULL']
     bear = snapshot[snapshot['wrt_type'] == 'BEAR']
     if (call.shape[0] > NUM_SAMPLE):
-        call = call[0:100]
+        call = call[0:NUM_SAMPLE]
     if (put.shape[0] > NUM_SAMPLE):
-        put = put[0:100]
+        put = put[0:NUM_SAMPLE]
     if (bull.shape[0] > NUM_SAMPLE):
-        bull = bull[0:100]
+        bull = bull[0:NUM_SAMPLE]
     if (bear.shape[0] > NUM_SAMPLE):
-        bear = bear[0:100]
+        bear = bear[0:NUM_SAMPLE]
 
     sample_list = call
     sample_list = sample_list.append(put)
