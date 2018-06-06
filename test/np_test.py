@@ -35,16 +35,39 @@ print(na)
 na = np.ones(10)
 print(na)
 
+# [0 1 2 3 4 5 6 7 8 9]
 na = np.arange(10)
 print(na)
 
-na = np.arange(10, 100, 2)
+# 0 ~ 10 间隔2
+# [0 2 4 6 8]
+na = np.arange(0, 10, 2)
+print(na)
+
+# 0~5, 10个数
+'''
+[0.         0.55555556 1.11111111 1.66666667 2.22222222 2.77777778
+ 3.33333333 3.88888889 4.44444444 5.        ]
+'''
+na = np.linspace(0, 5, 10)
 print(na)
 
 na = np.arange(10).reshape(2, 5)
 print(na)
 
 na = np.eye(10)
+
+a = np.array([1,2,3,4])
+b = np.array([6,7,8,9])
+print(10 * a)
+print(a + b)
+print(a * b)
+print(a.dot(b))
+print(np.sin(a))
+print(math.sin(a))  # 不能用python的sin
+
+
+
 print(na)
 
 
