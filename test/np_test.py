@@ -1,4 +1,5 @@
 import numpy as np
+import math
 # one axis
 a =[1,2,3]
 na = np.array(a)
