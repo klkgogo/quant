@@ -65,7 +65,7 @@ print(a + b)
 print(a * b)
 print(a.dot(b))
 print(np.sin(a))
-print(math.sin(a))  # 不能用python的sin
+# print(math.sin(a))  # 不能用python的sin
 
 
 
@@ -224,7 +224,7 @@ print(b)
  [15 16 17 18 19]]
  """
 
-b = a.resize(4,5)  #会改变a自身
+b = a.resize(4, 5)  #会改变a自身
 print(a)
 """
 [[ 0  1  2  3  4]
@@ -239,3 +239,186 @@ None
 
 b = a.reshape(2, -1) # -1，自动计算这一维的值
 print(b)
+"""
+[[ 0  1  2  3  4  5  6  7  8  9]
+ [10 11 12 13 14 15 16 17 18 19]]
+ """
+
+# Stacking together different arrays
+
+a = np.array([[1, 2], [3, 4]])
+b = np.array([[5, 6], [7, 8]])
+print(a)
+"""
+[[1 2]
+ [3 4]]
+ """
+print(b)
+"""
+[[5 6]
+ [7 8]]
+ """
+
+c = np.hstack((a, b))
+print(c)
+"""
+[[1 2 5 6]
+ [3 4 7 8]]
+ """
+
+c = np.vstack((a, b))
+print(c)
+"""
+[[1 2]
+ [3 4]
+ [5 6]
+ [7 8]]
+ """
+
+a = np.array([[1, 2], [3, 4]])
+b = np.array([[5, 6], [7, 8]])
+# The function column_stack stacks 1D arrays as columns into a 2D array. It is equivalent to hstack only for 2D arrays:
+# 将一维数组作为二维数组的列
+c = np.column_stack((a, b))
+print(c)
+"""
+[[1 2 5 6]
+ [3 4 7 8]]
+"""
+a = [1, 2]
+b = [3, 4]
+c = np.column_stack((a, b))
+print(c)
+"""
+[[1 3]
+ [2 4]]
+ """
+
+# concatenate Join a sequence of arrays along an existing axis.
+
+a = np.array([[1, 2], [3, 4]])
+b = np.array([[5, 6]])
+c = np.concatenate((a, b), axis= 0)
+print(c)
+"""
+[[1 2]
+ [3 4]
+ [5 6]]
+ """
+
+c = np.vstack((a, b)) # same as above
+print(c)
+"""
+[[1 2]
+ [3 4]
+ [5 6]]
+"""
+c = np.concatenate((a, b.T), axis=1)
+print(c)
+"""
+[[1 2 5]
+ [3 4 6]]
+ """
+
+#分割
+
+a = np.array([[ 9.,  5.,  6.,  3.,  6.,  8.,  0.,  7.,  9.,  7.,  2.,  7.],
+              [ 1.,  4.,  9.,  2.,  2.,  1.,  0.,  6.,  2.,  2.,  4.,  0.]])  # 2x12
+c = np.hsplit(a, 3) #以3列为一组分开
+print(c)
+"""
+[array([[9., 5., 6., 3.],
+       [1., 4., 9., 2.]]), array([[6., 8., 0., 7.],
+       [2., 1., 0., 6.]]), array([[9., 7., 2., 7.],
+       [2., 2., 4., 0.]])]
+       """
+c = np.hsplit(a, (3, 5, 7)) #以第3，5，7列为分割点分开
+print(c)
+"""
+[array([[9., 5., 6.],
+       [1., 4., 9.]]), array([[3., 6.],
+       [2., 2.]]), array([[8., 0.],
+       [1., 0.]]), array([[7., 9., 7., 2., 7.],
+       [6., 2., 2., 4., 0.]])]
+"""
+
+# copy 和 view
+a = np.array([1, 2, 3])
+b = a  # 赋值操作，a, b指向同一对像，这和python的赋值是一样的
+b[0] = 4
+print(id(a))
+print(id(b))  # a,b 的id 相同
+"""
+55644032
+55644032
+"""
+
+print(a) # 改变b,即改变a
+"""
+[4 2 3]
+"""
+
+def f(x):           # 参数传递也是引用传递
+    print(id(x))
+f(a)
+"""
+55644032
+"""
+
+# view
+a = np.arange(10)
+c = a.view()  # c是a的一个View
+print(c is a) # c和a不是同一个object
+print(id(c))
+print(id(a))
+"""
+False
+55643952
+55642672
+"""
+
+print(c.base is a)  # 但c的底层数据是a的数据，c是a的数据的一个view
+print(id(c.base))
+print(id(a))
+print(type(c))
+"""
+True
+55970432
+55970432
+"""
+c.shape = (2, 5)  #可以改变view的shape
+print(c)
+"""
+[[0 1 2 3 4]
+ [5 6 7 8 9]]
+"""
+print(a)     #但原来的a的shape不受影响
+"""
+[0 1 2 3 4 5 6 7 8 9]
+"""
+
+c[0,0] = 100   #改变数据会同时反映在c和a上，因为c和a共享同一分底层数据，只是view（视觉）不同
+print(c)
+"""
+[[100   1   2   3   4]
+ [  5   6   7   8   9]]
+"""
+print(a)
+"""
+[100   1   2   3   4   5   6   7   8   9]
+"""
+
+d = a[1:4]  #切片返回的是一个view
+d[:] = 10
+print(c)
+"""
+[[100  10  10  10   4]
+ [  5   6   7   8   9]]
+ """
+
+#deep copy
+d = a.copy()  # d和a是两个object底层数据也不相同
+print(d.base is a)
+"""
+False
+"""
