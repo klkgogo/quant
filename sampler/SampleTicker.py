@@ -1,11 +1,11 @@
 import futuquant as ft
-from futuquant.open_context import *
 import pandas as pd
 import datetime as dt
 import time
 import socket
+from futuquant import *
 
-from futuquant.examples.emailplugin import EmailNotification
+from emailplugin import EmailNotification
 
 def genOrderBookColums():
     indexAsk = ['Ask_price' + str(x) for x in range(10)]
@@ -15,7 +15,7 @@ def genOrderBookColums():
     indexBid = ['Bid_price' + str(x) for x in range(10)][::-1]
     indexBid_volume = ['Bid_volume' + str(x) for x in range(10)][::-1]
     indexBid_num = ['Bid_num' + str(x) for x in range(10)][::-1]
-    index = indexBid + indexAsk + indexBid_volume + indexAsk_volume + indexBid_num + indexAsk_num + ['stcok_code', 'timestamp']
+    index = indexBid + indexAsk + indexBid_volume + indexAsk_volume + indexBid_num + indexAsk_num + ['stock_code', 'timestamp']
     return index
 
 def changeOrderBookValueToList(ob):
@@ -41,8 +41,8 @@ class SamplerBase(object):
         self.name = name
 
     def sample(self, content):
-        self.CacheCount += content.shape[0];
-        self.TotalCount += content.shape[0];
+        self.CacheCount += content.shape[0]
+        self.TotalCount += content.shape[0]
         self.CacheData = self.CacheData.append(content)
 
         if self.CacheCount > self.maxCacheNum:
@@ -57,7 +57,7 @@ class SamplerBase(object):
         if (data.shape[0] == 0):
             print(self.name, ": cache empty")
             return
-        fileName = self.name + "_" + self.day + ".h5";
+        fileName = self.name + "_" + self.day + ".h5"
         f = pd.HDFStore(fileName, 'a')
         f.put('data', data, format="table", append=True)
         f.close()
@@ -116,13 +116,13 @@ class StockSampler(object):
 
     def tickSubscribe(self, stock_code):
         for c in stock_code:
-            ret_code, msg = self.context.subscribe(c, "TICKER", push=True)
+            ret_code, msg = self.context.subscribe(c, [SubType.TICKER])
             if (ret_code == RET_ERROR):
                 print(msg, c)
 
     def orderbookSubscribe(self, stock_code):
         for c in stock_code:
-            ret_code, msg = self.context.subscribe(c, "ORDER_BOOK", push=True)
+            ret_code, msg = self.context.subscribe(c, [SubType.TICKER])
             if (ret_code == RET_ERROR):
                 print(msg, c)
 
@@ -171,6 +171,7 @@ if __name__ == '__main__':
     context = ft.OpenQuoteContext(host='127.0.0.1', port=11111)
     stockSampler = StockSampler(context)
     stocklist = getHISStockList(context)
+    print(stocklist)
     print(len(stocklist))
     stockSampler.tickSubscribe(stocklist['code'])
     stockSampler.orderbookSubscribe(stocklist['code'])
@@ -178,13 +179,13 @@ if __name__ == '__main__':
 
     try:
         while 1:
-            sleep(10)
+            time.sleep(10)
             if isEnd():
                 break
         print("sample end")
-    except BaseException:
-        print("interrupt")
-        send_msg('自动采集程序结束:异常终止', '异常终止')
+    except BaseException as err:
+        print("interrupt", err)
+        send_msg('自动采集程序结束:异常终止', '异常终止:{0}'.format(err))
     finally:
         context.close()
         stockSampler.stopSample()

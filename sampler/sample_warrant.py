@@ -1,5 +1,5 @@
 import SampleTicker as st
-import futuquant as ft
+from futuquant import *
 import pandas as pd
 import time
 import datetime as dt
@@ -11,8 +11,8 @@ def get_warrant_snapshot(context, code):
     :param code: 正股代码
     :return: 涡轮列表
     """
-    ret_code, ret_data = context.get_stock_basicinfo('HK', 'WARRANT')
-    wrt_list = ret_data[ret_data['owner_stock_code'] == code]['code'].values
+    ret_code, ret_data = context.get_stock_basicinfo(Market.HK, SecurityType.WARRANT)
+    wrt_list = ret_data[ret_data['stock_owner'] == code]['code'].values
     if len(wrt_list) == 0:
         print("Error can not get stock info '{}'".format(code))
         return
@@ -59,7 +59,7 @@ def get_sample_warrant(context, code):
     return sample_list
 
 if __name__ == '__main__':
-    context = ft.OpenQuoteContext(host='127.0.0.1', port=11111)
+    context = OpenQuoteContext(host='127.0.0.1', port=11111)
     # context = ft.OpenQuoteContext(host='192.168.56.2', port=11111)
     code = 'HK.00700'
     stockSampler = st.StockSampler(context)
@@ -82,9 +82,9 @@ if __name__ == '__main__':
             if st.isEnd():
                 break
         print("sample end")
-    except BaseException:
-        print("interrupt")
-        st.send_msg('自动采集程序结束:异常终止', '异常终止')
+    except BaseException as err:
+        print("interrupt, {0}".format(err))
+        st.send_msg('自动采集程序结束:异常终止', '异常终止,{0}'.format(err))
     finally:
         context.close()
         stockSampler.stopSample()
