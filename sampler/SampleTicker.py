@@ -26,7 +26,7 @@ def changeOrderBookValueToList(ob):
     valuesBid = [x[0] for x in ob['Bid']][::-1]
     valuesBidV = [x[1] for x in ob['Bid']][::-1]
     valuesBidN = [x[2] for x in ob['Bid']][::-1]
-    values = valuesBid + valuesAsk + valuesBidV + valuesAskV + valuesBidN + valuesAskN + [ob['stock_code'] , ob['timestamp']]
+    values = valuesBid + valuesAsk + valuesBidV + valuesAskV + valuesBidN + valuesAskN + [ob['code'] , ob['timestamp']]
     return values
 
 class SamplerBase(object):
@@ -97,7 +97,7 @@ class OrderBookHandler(OrderBookHandlerBase, SamplerBase):
         if ret_code != RET_OK:
             print("OrderBookTest: error, msg: %s" % content)
             return RET_ERROR, content
-        print("ob count:", self.TotalCount, content['stock_code'], " Bid:", content['Bid'][0],"ask:", content['Ask'][0])
+        print("ob count:", self.TotalCount, content['code'], " Bid:", content['Bid'][0],"ask:", content['Ask'][0])
         # print("ob count:", self.TotalCount)
         # print(content)
         content['timestamp'] = str(dt.datetime.now())
@@ -122,7 +122,7 @@ class StockSampler(object):
 
     def orderbookSubscribe(self, stock_code):
         for c in stock_code:
-            ret_code, msg = self.context.subscribe(c, [SubType.TICKER])
+            ret_code, msg = self.context.subscribe(c, [SubType.ORDER_BOOK])
             if (ret_code == RET_ERROR):
                 print(msg, c)
 
