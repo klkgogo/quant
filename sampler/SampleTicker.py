@@ -15,7 +15,7 @@ def genOrderBookColums():
     indexBid = ['Bid_price' + str(x) for x in range(10)][::-1]
     indexBid_volume = ['Bid_volume' + str(x) for x in range(10)][::-1]
     indexBid_num = ['Bid_num' + str(x) for x in range(10)][::-1]
-    index = indexBid + indexAsk + indexBid_volume + indexAsk_volume + indexBid_num + indexAsk_num + ['stock_code', 'timestamp']
+    index = indexBid + indexAsk + indexBid_volume + indexAsk_volume + indexBid_num + indexAsk_num + ['code', 'timestamp']
     return index
 
 def changeOrderBookValueToList(ob):
