@@ -38,7 +38,7 @@ class EmailNotification(object):
             smtp.sendmail(EmailNotification.sender, receiver,
                           msg.as_string())  # 这行代码解决的下方554的错误
             smtp.quit()
-            print("邮件发送成功! {0} {1} {2}".format(receiver, subject, words))
+            print("Send Email: {0} {1} {2}".format(receiver, subject, words))
         except Exception as e:
             print(e)
 
