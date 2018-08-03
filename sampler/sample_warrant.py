@@ -84,7 +84,7 @@ if __name__ == '__main__':
         print("sample end")
     except BaseException as err:
         print("interrupt, {0}".format(err))
-        st.send_msg('自动采集程序结束:异常终止', '异常终止,{0}'.format(err))
+        st.send_msg('Sample end unexpected', 'unexpected,{0}'.format(err))
     finally:
         context.close()
         stockSampler.stopSample()
