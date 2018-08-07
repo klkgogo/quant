@@ -4,6 +4,8 @@ import pandas as pd
 import time
 import datetime as dt
 
+from smsplugin import Sms
+
 def get_warrant_snapshot(context, code):
     """
     获取某正股的涡轮的snapshot, 按前一收市成交量排序
@@ -85,6 +87,7 @@ if __name__ == '__main__':
     except BaseException as err:
         print("interrupt, {0}".format(err))
         st.send_msg('Sample end unexpected', 'unexpected,{0}'.format(err))
+        Sms.send_exception(err)
     finally:
         context.close()
         stockSampler.stopSample()

@@ -6,6 +6,7 @@ import socket
 import codecs
 from futuquant import *
 
+from smsplugin import Sms
 from emailplugin import EmailNotification
 
 def genOrderBookColums():
@@ -129,14 +130,16 @@ class StockSampler(object):
 
     def startSample(self):
         self.context.start()
-        send_msg('Sample start:{}:{}'.format(socket.gethostname(), time.ctime()), 'sample start:{}'.format(time.ctime()))
+        # send_msg('Sample start:{}:{}'.format(socket.gethostname(), time.ctime()), 'sample start:{}'.format(time.ctime()))
+        Sms.send_start_sample()
 
     def stopSample(self):
         self.orderbookHandler.flush()
         self.tickHandler.flush()
         print("stop sample, ob count: ", self.orderbookHandler.TotalCount, " tickerCount: ", self.tickHandler.TotalCount)
-        send_msg('Sample end:{}:{}'.format(socket.gethostname(), time.ctime()),
-                 'sample end:{}, tickerCount:{}, orderbookCount:{} '.format(time.ctime(), self.tickHandler.TotalCount, self.orderbookHandler.TotalCount ))
+        # send_msg('Sample end:{}:{}'.format(socket.gethostname(), time.ctime()),
+        #          'sample end:{}, tickerCount:{}, orderbookCount:{} '.format(time.ctime(), self.tickHandler.TotalCount, self.orderbookHandler.TotalCount ))
+        Sms.send_end_sample(self.orderbookHandler.TotalCount, self.tickHandler.TotalCount)
 
 
 def getStockList(context):
@@ -192,6 +195,7 @@ if __name__ == '__main__':
     except BaseException as err:
         print("interrupt", err)
         send_msg('Sample end unexpected', 'unexpected end:{0}'.format(err))
+        Sms.send_exception(err)
     finally:
         context.close()
         stockSampler.stopSample()
