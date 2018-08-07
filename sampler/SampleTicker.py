@@ -180,7 +180,7 @@ if __name__ == '__main__':
     context = ft.OpenQuoteContext(host='127.0.0.1', port=11111)
     stockSampler = StockSampler(context)
     stocklist = getHISStockList(context)
-    print(stocklist)
+    #print(stocklist)
     print(len(stocklist))
     stockSampler.tickSubscribe(stocklist['code'])
     stockSampler.orderbookSubscribe(stocklist['code'])
