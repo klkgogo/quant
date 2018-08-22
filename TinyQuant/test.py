@@ -1,6 +1,5 @@
 import pandas as pd
 
-df = pd.DataFrame([[1, 2, 3], [4,5,6]], columns=['a' ,'b', 'c'])
-
-a = df.iloc[-1]
+a = [1, 2, 3]
+a = a + [4]
 print(a)

@@ -422,3 +422,172 @@ print(d.base is a)
 """
 False
 """
+
+
+"""
+numpy特有的索引方法
+"""
+
+"""
+使用list作为索引
+"""
+a = np.arange(10)
+print(a[[1, 2, 3]])
+"""
+[1 2 3]
+"""
+i = np.array([[1, 2], [3, 4]])
+print(a[i])
+"""
+[1 2]
+ [3 4]]
+ """
+
+# 如果a是多维的，索引是沿着axis = 0
+palette = np.array( [ [0,0,0],                # black
+                     [255,0,0],              # red
+                     [0,255,0],              # green
+                     [0,0,255],              # blue
+                     [255,255,255] ] )       # white
+image = np.array([[0, 2, 1, 3],
+                 [2, 3, 0, 0]])
+print(palette[image])
+"""
+[[[  0   0   0]
+  [  0 255   0]
+  [255   0   0]
+  [  0   0 255]]
+
+ [[  0 255   0]
+  [  0   0 255]
+  [  0   0   0]
+  [  0   0   0]]]
+  """
+
+#多维索引
+a = np.arange(12).reshape(3,4)
+print(a)
+"""
+[[ 0  1  2  3]
+ [ 4  5  6  7]
+ [ 8  9 10 11]]
+"""
+i = np.array([ [0, 1],
+               [1, 2] ])
+j = np.array([ [2, 3],
+               [0, 2]])
+print(a[i])
+"""
+[[[ 0  1  2  3]
+  [ 4  5  6  7]]
+
+ [[ 4  5  6  7]
+  [ 8  9 10 11]]]
+"""
+
+print(a[i, j])
+"""
+[[ 2  7]
+ [ 4 10]]
+"""
+
+# 使用索引赋值
+a[i, j] = 0
+print(a)
+"""
+[[ 0  1  0  3]
+ [ 0  5  6  0]
+ [ 8  9  0 11]]
+ """
+
+"""
+boolean 索引
+"""
+a = np.arange(12).reshape(3,4)
+b = a > 4
+print(b)
+"""
+[[False False False False]
+ [False  True  True  True]
+ [ True  True  True  True]]
+ """
+print(a[b])
+"""
+[ 5  6  7  8  9 10 11]
+"""
+a[b] = 10  #赋值
+print(a)
+"""
+[[ 0  1  2  3]
+ [ 4 10 10 10]
+ [10 10 10 10]]
+"""
+
+a = np.arange(12).reshape(3, 4)
+print(a)
+"""
+[[ 0  1  2  3]
+ [ 4  5  6  7]
+ [ 8  9 10 11]]
+ """
+i = np.array([0, 1])
+j = np.array([2, 3])
+print(a[i, j])
+"""
+[2 7]
+"""
+b = a[i]
+print(b)
+"""
+[[0 1 2 3 4]
+ [5 6 7 8 9]]
+ """
+print(a[i, j])
+
+"""
+ix_
+"""
+
+ixgrid = np.ix_([0, 1], [2, 3])
+print(ixgrid)
+print(a[ixgrid])
+"""
+[[2 3]
+ [6 7]]
+"""
+# ixgrid 相当于以下i,j
+i = np.array([[0, 0],
+             [1, 1]])
+j = np.array([[2, 3],
+             [2, 3]])
+print(a[i, j])
+"""
+[[2 3]
+ [6 7]]
+ """
+
+a = np.array([1, 2, 3])
+b = np.array([5, 6, 7])
+ax, bx = np.ix_(a, b)
+print(ax)
+"""
+[[1]
+ [2]
+ [3]]
+ """
+print(bx)
+"""
+[[5 6 7]]
+"""
+result = bx + ax
+
+print(result)
+"""
+[[ 6  7  8]
+ [ 7  8  9]
+ [ 8  9 10]]
+ """
+print(result[1,2])
+"""
+9
+"""

@@ -52,7 +52,7 @@ def min_trend_strage(data, debug=False, buy_thresh=-3, sell_thresh=-0.3):
     sell_thresh = sell_thresh
     total_earn = 0
     last_buy_idx = 0
-    money = 200000
+    money = 100000
     stock_count = int(math.floor(money / data['close'][0] / 100)) * 100
     print("stock_count:", stock_count )
     fee = 30;
@@ -78,7 +78,7 @@ def min_trend_strage(data, debug=False, buy_thresh=-3, sell_thresh=-0.3):
         #     if data['sum_rate'][i] > 0 and data['sum_rate'][i-1] < change_thresh and data['rate_avg'][i-1] < avg_change_thresh :
         #     if data['sum_rate'][i] > 0 and data['sum_rate'][i - 1] < change_thresh:
         #     if data['sum_rate'][i] > 0 and (data['sum_rate'][i - 1] < change_thresh or data['sum_rate_slow'][i - 1] < change_thresh):
-            if data['sum_rate'][i] > 0 and (data['sum_rate'][i - 1] < change_thresh or data['sum_rate_slow'][i - 1] < change_thresh) and data['rate_avg'][i-1] < avg_change_thresh :
+            if data['sum_rate'][i] > 0 and data['sum_rate_slow'][i] < 0 and (data['sum_rate'][i - 1] < change_thresh or data['sum_rate_slow'][i - 1] < change_thresh) and data['rate_avg'][i-1] < avg_change_thresh :
 
                 last_buy = data['close'][i]
                 last_buy_idx = i
@@ -129,7 +129,8 @@ def min_trend_strage(data, debug=False, buy_thresh=-3, sell_thresh=-0.3):
         data['sum_rate'].plot()
         # print(" earn: ", earn[i], " fee: ", f, " total: ", total_earn)
         plt.subplot(3, 1, 3)
-        plt.plot(earn_list)
+        # plt.plot(earn_list)
+        data['sum_rate_slow'].plot()
         plt.show()
     return ( total_earn, total_fee, order_count, win_count, lost_count)
 
@@ -173,27 +174,27 @@ def run_min_starge(code, start_date, end_date= None, debug = False, buy_thresh =
     return df, order_count, win_count, lost_count
 
 
-# start_date = '2018-04-18'
-start_date = '2017-01-01'
+# start_date = '2018-05-17'
+start_date = '2018-01-01'
 # start_date = '2017-12-06'
 
 DIVIDE_FACTOR = 1000
-
-stock_code = 'HK.00175'
-buy_thresh = -3
-sell_thresh = -0.003
+#
+# stock_code = 'HK.00175'
+# buy_thresh = -3
+# sell_thresh = -0.003
 
 
 # stock_code = 'HK.02318'
 # buy_thresh = -2
 # sell_thresh = -0.003
 # # #
-# stock_code = 'HK.00700'
-# buy_thresh = -1.5
-# sell_thresh = -0.003
+stock_code = 'HK.00700'
+buy_thresh = -1.5
+sell_thresh = -0.003
 
-ret_data, order, win, lost = run_min_starge(stock_code, start_date, debug=False, buy_thresh=buy_thresh, sell_thresh=sell_thresh)
-# ret_data, order, win, lost = run_min_starge(stock_code, start_date, debug=True, buy_thresh=buy_thresh, sell_thresh=sell_thresh)
+# ret_data, order, win, lost = run_min_starge(stock_code, start_date, debug=False, buy_thresh=buy_thresh, sell_thresh=sell_thresh)
+ret_data, order, win, lost = run_min_starge(stock_code, start_date, debug=True, buy_thresh=buy_thresh, sell_thresh=sell_thresh)
 
 quote_ctx.close()
 

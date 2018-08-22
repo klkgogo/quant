@@ -13,7 +13,8 @@ ret_code, ret_data = quote_ctx.get_stock_basicinfo(market='HK', stock_type='STOC
 # print(ret_code, ret_data)
 # print(type(ret_data))
 
-
+ret_code, ret_data = quote_ctx.get_plate_stock('HK', 'HK.00700')
+print(ret_data)
 
 def sum_rate(change_rate):
     ret= np.zeros(change_rate.shape[0])

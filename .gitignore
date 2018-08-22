@@ -2,3 +2,9 @@ TinyQuant/__pycache__/*.*
 .idea
 *.py[cod]
 *.xml
+data/processed/*.*
+data/raw/*.*
+*.h5
+.DS_Store
+sampler/log
+TinyQuant/temp
