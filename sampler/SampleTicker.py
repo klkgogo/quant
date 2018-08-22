@@ -172,10 +172,10 @@ def send_msg(subject, words):
     EmailNotification.send_email(receiver, subject, words)
 
 if __name__ == '__main__':
-    if sys.stdout.encoding != 'UTF-8':
-        sys.stdout = codecs.getwriter('utf-8')(sys.stdout.buffer, 'strict')
-    if sys.stderr.encoding != 'UTF-8':
-        sys.stderr = codecs.getwriter('utf-8')(sys.stderr.buffer, 'strict')
+    # if sys.stdout.encoding != 'UTF-8':
+    #     sys.stdout = codecs.getwriter('utf-8')(sys.stdout.buffer, 'strict')
+    # if sys.stderr.encoding != 'UTF-8':
+    #     sys.stderr = codecs.getwriter('utf-8')(sys.stderr.buffer, 'strict')
 
     context = ft.OpenQuoteContext(host='127.0.0.1', port=11111)
     stockSampler = StockSampler(context)
