@@ -76,6 +76,7 @@ class TickerHandler(TickerHandlerBase, SamplerBase):
         SamplerBase.__init__(self, name = "ticker")
 
     def on_recv_rsp(self, rsp_str):
+        print("on_recv_rsp ticker enter")
         ret_code, content = super(TickerHandler,self).on_recv_rsp(rsp_str) # 基类的on_recv_rsp方法解包返回了逐笔信息，格式与get_rt_ticker一样
         if ret_code != RET_OK:
             print("TickerTest: error, msg: %s" % content)
@@ -83,6 +84,7 @@ class TickerHandler(TickerHandlerBase, SamplerBase):
         print('tk Count:', self.TotalCount, content[['code', 'time', 'price', 'volume']].values)  # StockQuoteTest自己的处理逻辑
         # print(content)
         self.sample(content)
+        print("on_recv_rsp ticker exit")
         return RET_OK, content
 
 class OrderBookHandler(OrderBookHandlerBase, SamplerBase):
@@ -95,6 +97,7 @@ class OrderBookHandler(OrderBookHandlerBase, SamplerBase):
 
     def on_recv_rsp(self, rsp_str):
         """数据响应回调函数"""
+        print("on_recv_rsp orderbook enter")
         ret_code, content = super(OrderBookHandler, self).on_recv_rsp(rsp_str)
         if ret_code != RET_OK:
             print("OrderBookTest: error, msg: %s" % content)
@@ -105,6 +108,7 @@ class OrderBookHandler(OrderBookHandlerBase, SamplerBase):
         content['timestamp'] = str(dt.datetime.now())
         df = pd.DataFrame([changeOrderBookValueToList(content)], columns=self.col)
         self.sample(df)
+        print("on_recv_rsp orderbook exit")
         return RET_OK, content
 
 
