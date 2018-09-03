@@ -143,8 +143,8 @@ class StockSampler(object):
     def stopSample(self):
         self.orderbookHandler.flush()
         self.tickHandler.flush()
-        self.orderbookHandler.close()
-        self.tickHandler.close()
+        self.orderbookHandler.stop()
+        self.tickHandler.stop()
         print("stop sample, ob count: ", self.orderbookHandler.TotalCount, " tickerCount: ", self.tickHandler.TotalCount)
         # send_msg('Sample end:{}:{}'.format(socket.gethostname(), time.ctime()),
         #          'sample end:{}, tickerCount:{}, orderbookCount:{} '.format(time.ctime(), self.tickHandler.TotalCount, self.orderbookHandler.TotalCount ))
