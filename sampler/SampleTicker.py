@@ -34,13 +34,15 @@ def changeOrderBookValueToList(ob):
 class SamplerBase(object):
     TotalCount = 0
 
-    def __init__(self, name, maxCacheNum = 200):
+    def __init__(self, name, maxCacheNum = 20000):
         self.TotalCount = 0
         self.CacheCount = 0
         self.maxCacheNum = maxCacheNum
         self.CacheData = pd.DataFrame()
         self.day = str(dt.datetime.now())[:10]
         self.name = name
+        self.fileName = self.name + "_" + self.day + ".h5"
+        self.f = pd.HDFStore(self.fileName, 'a')
 
     def sample(self, content):
         self.CacheCount += content.shape[0]
@@ -59,15 +61,16 @@ class SamplerBase(object):
         if (data.shape[0] == 0):
             print(self.name, ": cache empty")
             return
-        fileName = self.name + "_" + self.day + ".h5"
-        f = pd.HDFStore(fileName, 'a')
-        f.put('data', data, format="table", append=True)
-        f.close()
-        print("save: " + fileName)
+        self.f.put('data', data, format="table", append=True)
+        print("save: " + self.fileName)
 
     def flush(self):
         self.saveCache(self.CacheData)
         self.clearCache()
+
+    def stop(self):
+        self.f.close()
+
 
 
 
@@ -140,6 +143,8 @@ class StockSampler(object):
     def stopSample(self):
         self.orderbookHandler.flush()
         self.tickHandler.flush()
+        self.orderbookHandler.close()
+        self.tickHandler.close()
         print("stop sample, ob count: ", self.orderbookHandler.TotalCount, " tickerCount: ", self.tickHandler.TotalCount)
         # send_msg('Sample end:{}:{}'.format(socket.gethostname(), time.ctime()),
         #          'sample end:{}, tickerCount:{}, orderbookCount:{} '.format(time.ctime(), self.tickHandler.TotalCount, self.orderbookHandler.TotalCount ))
