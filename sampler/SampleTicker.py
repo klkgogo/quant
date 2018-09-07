@@ -160,6 +160,11 @@ def getHISStockList(context):
     return ret_data
 
 
+def getNASDAQStockList(context):
+    ret_code, ret_data = context.get_plate_stock("US.NASDAQ")
+    return ret_data[:50]
+
+
 def isEnd():
     t = time.localtime()
     min = t.tm_hour * 60 + t.tm_min
@@ -185,7 +190,8 @@ if __name__ == '__main__':
     context = ft.OpenQuoteContext(host='127.0.0.1', port=11111)
     stockSampler = StockSampler(context)
     stocklist = getHISStockList(context)
-    #print(stocklist)
+    #stocklist = getNASDAQStockList(context)
+    print(stocklist)
     print(len(stocklist))
     stockSampler.tickSubscribe(stocklist['code'])
     stockSampler.orderbookSubscribe(stocklist['code'])
