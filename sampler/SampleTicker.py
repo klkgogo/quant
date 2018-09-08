@@ -54,7 +54,8 @@ class SamplerBase(object):
             self.clearCache()
 
     def clearCache(self):
-        self.CacheData.drop(self.CacheData.index, inplace=True)
+        #self.CacheData.drop(self.CacheData.index, inplace=True)
+        self.CacheCount = pd.DataFrame()
         self.CacheCount = 0
 
     def saveCache(self, data):
@@ -62,6 +63,7 @@ class SamplerBase(object):
             print(self.name, ": cache empty")
             return
         self.f.put('data', data, format="table", append=True)
+        self.f.flush()
         print("save: " + self.fileName)
 
     def flush(self):
