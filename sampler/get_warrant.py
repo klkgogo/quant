@@ -62,5 +62,5 @@ def get_sample_warrant(context, code):
 if __name__ == "__main__":
 
     quote_ctx = ft.OpenQuoteContext(host='192.168.56.2', port=11111)
-    snapshot = get_warrant_snapshot(quote_ctx, "HK.00700")
+    snapshot = get_warrant_snapshot(quote_ctx, "HK.800000")
     quote_ctx.close()

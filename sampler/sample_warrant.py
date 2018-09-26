@@ -39,31 +39,33 @@ def get_sample_warrant(context, code):
     :param code: 要采集的涡轮正股
     :return:
     """
-    NUM_SAMPLE = 40  # 每种涡轮采集的数量
+    NUM_SAMPLE = 80  # 每种涡轮采集的数量
     snapshot = get_warrant_snapshot(context, code)
     call = snapshot[snapshot['wrt_type'] == 'CALL']
     put = snapshot[snapshot['wrt_type'] == 'PUT']
     bull = snapshot[snapshot['wrt_type'] == 'BULL']
     bear = snapshot[snapshot['wrt_type'] == 'BEAR']
-    if (call.shape[0] > NUM_SAMPLE):
-        call = call[0:NUM_SAMPLE]
-    if (put.shape[0] > NUM_SAMPLE):
-        put = put[0:NUM_SAMPLE]
+    # if (call.shape[0] > NUM_SAMPLE):
+    #     call = call[0:NUM_SAMPLE]
+    # if (put.shape[0] > NUM_SAMPLE):
+    #     put = put[0:NUM_SAMPLE]
     if (bull.shape[0] > NUM_SAMPLE):
         bull = bull[0:NUM_SAMPLE]
     if (bear.shape[0] > NUM_SAMPLE):
         bear = bear[0:NUM_SAMPLE]
 
-    sample_list = call
-    sample_list = sample_list.append(put)
-    sample_list = sample_list.append(bull)
+    # sample_list = call
+    # sample_list = sample_list.append(put)
+    # sample_list = sample_list.append(bull)
+    # sample_list = sample_list.append(bear)
+    sample_list = bull
     sample_list = sample_list.append(bear)
     return sample_list
 
 if __name__ == '__main__':
     context = OpenQuoteContext(host='127.0.0.1', port=11111)
     # context = ft.OpenQuoteContext(host='192.168.56.2', port=11111)
-    code = 'HK.00700'
+    code = 'HK.800000'
     stockSampler = st.StockSampler(context)
     warrant_snapshot = get_sample_warrant(context, code)
 
@@ -72,7 +74,7 @@ if __name__ == '__main__':
     f = pd.HDFStore(fileName, 'a')
     f['warrant_info'] = warrant_snapshot
     f.close()
-
+    print(warrant_snapshot)
     stockSampler.tickSubscribe([code])
     stockSampler.orderbookSubscribe([code])
     stockSampler.orderbookSubscribe(warrant_snapshot['code'])
