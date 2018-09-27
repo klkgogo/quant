@@ -76,6 +76,7 @@ if __name__ == '__main__':
     f.close()
     print(warrant_snapshot)
     stockSampler.tickSubscribe([code])
+    stockSampler.tickSubscribe(warrant_snapshot['code'])
     stockSampler.orderbookSubscribe([code])
     stockSampler.orderbookSubscribe(warrant_snapshot['code'])
     stockSampler.startSample()
