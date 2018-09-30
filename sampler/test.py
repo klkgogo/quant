@@ -1,12 +1,7 @@
-import time as dt
-from futuquant.examples.emailplugin import EmailNotification
-import socket
-
-hostName = socket.gethostname()
-print(hostName)
-
-ts = dt.localtime()
-print(ts)
-
-EmailNotification.set_enable(True)
-EmailNotification.send_email('49072565@qq.com', 'test', 'hahahaha')
+import pandas as pd
+import datetime as dt
+df = pd.DataFrame([[1, 2, 3, 4, 5], [1, 2, 3, 4, 5], [1, 2, 3, 4, 5]], columns=['a', 'b', 'c', 'd', 'e'])
+df['f'] = 10
+print(df)
+print(df[['a', 'e']])
+print(dt.datetime.now())
