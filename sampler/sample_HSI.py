@@ -137,10 +137,10 @@ if __name__ == '__main__':
     context.set_handler(quote_handler)
     context.subscribe([code], [SubType.QUOTE])
     # stockSampler.tickSubscribe([code])
-    # stockSampler.tickSubscribe(warrant_snapshot['code'])
-    # stockSampler.orderbookSubscribe([code])
-    # stockSampler.orderbookSubscribe(warrant_snapshot['code'])
-    # stockSampler.startSample()
+    stockSampler.tickSubscribe(warrant_snapshot['code'])
+    stockSampler.orderbookSubscribe([code])
+    stockSampler.orderbookSubscribe(warrant_snapshot['code'])
+    stockSampler.startSample()
 
     try:
         while 1:
@@ -155,6 +155,6 @@ if __name__ == '__main__':
     finally:
         context.close()
         stockSampler.stopSample()
-        StockQuoteHandler.flush()
-        StockQuoteHandler.stop()
+        quote_handler.flush()
+        quote_handler.stop()
         print(time.ctime())
