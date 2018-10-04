@@ -64,7 +64,7 @@ def get_sample_warrant(context, code):
 class SamplerBase(object):
     TotalCount = 0
 
-    def __init__(self, name, maxCacheNum = 20000):
+    def __init__(self, name, maxCacheNum = 200):
         self.TotalCount = 0
         self.CacheCount = 0
         self.maxCacheNum = maxCacheNum
