@@ -55,7 +55,7 @@ class SamplerBase(object):
 
     def clearCache(self):
         #self.CacheData.drop(self.CacheData.index, inplace=True)
-        self.CacheCount = pd.DataFrame()
+        self.CacheData = pd.DataFrame()
         self.CacheCount = 0
 
     def saveCache(self, data):
