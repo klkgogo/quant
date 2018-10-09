@@ -114,6 +114,7 @@ class StockQuoteHandler(StockQuoteHandlerBase, SamplerBase):
         if ret_code != RET_OK:
             print("StockQuoteTest: error, msg: %s" % data)
             return RET_ERROR, data
+        print(data)
         content = data[['code', 'data_date', 'data_time', 'last_price']]
         self.sample(content)
         print("StockQuoteTest ", content) # StockQuoteTest自己的处理逻辑
