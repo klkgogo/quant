@@ -115,7 +115,7 @@ class StockQuoteHandler(StockQuoteHandlerBase, SamplerBase):
             print("StockQuoteTest: error, msg: %s" % data)
             return RET_ERROR, data
         print(data)
-        content = data[['code', 'data_date', 'data_time', 'last_price']]
+        content = data[['code', 'data_date', 'data_time', 'last_price', 'open_price', 'high_price', 'low_price', 'volume', 'turnover']]
         self.sample(content)
         print("StockQuoteTest ", content) # StockQuoteTest自己的处理逻辑
 
