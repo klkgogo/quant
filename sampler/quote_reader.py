@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 import datetime
 import matplotlib.pyplot as plt
 import talib
@@ -10,7 +11,7 @@ def get_datetime(df):
     dt = datetime.datetime.strptime(time + " " + date, "%H:%M:%S %Y-%m-%d")
     return dt
 
-f = pd.read_hdf("/Users/klkgogo/histData/Quote_2018-10-08.h5")
+f = pd.read_hdf("/Users/klkgogo/histData/Quote_2018-10-11.h5")
 # f = f.set_index('data_time')
 # st = pd.HDFStore("/Users/lingkunkong/Downloads/Quote_2018-10-08.h5", 'r')
 # print(st['data'])
@@ -38,8 +39,35 @@ def kdj(data, fk, sk, sd):
     return k[pre_addition_num:], d[pre_addition_num:], j[pre_addition_num:]
 
 
+
+def get_short_signal(signal):
+    #find first short index
+    first_short_index = 0
+    while signal[first_short_index] != -1:
+        first_short_index = first_short_index + 1
+    short_signal = signal[first_short_index:].copy()
+    #-1开空仓，1平仓，如果-1和1不配对，即sum不等于0，最后一个数平仓
+    if short_signal.sum() != 0:  #sum 不等于0，
+        short_signal[-1] = 1
+
+    return short_signal
+
+def get_long_signal(signal):
+    # find first short index
+    first_long_index = 0
+    while signal[first_long_index] != 1:
+        first_long_index = first_long_index + 1
+    long_signal = signal[first_long_index:].copy()
+    # 1开多仓，-1平仓，如果-1和1不配对，即sum不等于0，最后一个数平仓
+    if long_signal.sum() != 0:  # sum 不等于0，
+        long_signal[-1] = -1
+
+    return long_signal
+
+
 print(f)
 # print(f["data_date"])
+
 
 index = f.apply(get_datetime, axis=1)
 f.index = index
@@ -55,10 +83,36 @@ print(f_resample[:4520])
 # k, d = talib.STOCH(f_resample['high'], f_resample['low'], f_resample['close'], fastk_period=50, slowk_period=12, slowk_matype=1, slowd_period=12, slowd_matype=1)
 k, d, j = kdj(f_resample, 36, 12, 12)
 
+n = 400
+signal = k.dropna() > d.dropna()
+signal = signal.astype(np.int)
+print(signal)
+signal = signal - signal.shift(1)
+print(signal)
+
+short_signal = get_short_signal(signal[:n])
+long_signal = get_long_signal(signal[:n])
+
+print(f_resample['close'])
+log_price = np.log(f_resample['close'])
+print(log_price)
+short_log_return = -log_price * short_signal
+long_log_return = -log_price * long_signal
+log_return = pd.DataFrame({'close': f_resample['close'][:n], 'long': long_log_return.dropna(), "short": short_log_return.dropna()})
+log_return.to_csv("/Users/klkgogo/Documents/log_return.csv")
+print(log_return)
+print(short_log_return.dropna())
+print(long_log_return.dropna())
+print("short return {0} long return {1}, total return{2}".format(short_log_return.sum(), long_log_return.sum(), short_log_return.sum() + long_log_return.sum()))
+short_return = np.exp(short_log_return.sum())
+long_return = np.exp(long_log_return.sum())
+print("short return precent {:.3f}%, long return precent {:.3f}%".format((short_return - 1) * 100, (long_return - 1) * 100))
+
+
 # #
-n = 200
-print(k)
-print(d)
+# n = 200
+# # print(k)
+# # print(d)
 
 plt.figure()
 # plt.subplot(211)
