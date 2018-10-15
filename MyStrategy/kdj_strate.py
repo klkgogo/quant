@@ -1,6 +1,5 @@
-from FutuQuantFrame import *
-from StrateBase import *
-from FutuDataEvent import *
+from MyStrategy.FutuQuantFrame import *
+from MyStrategy.StrateBase import *
 import futuquant as ft
 import time
 import pandas as pd

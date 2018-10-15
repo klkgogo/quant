@@ -3,11 +3,6 @@
 
 '''
 
-import time
-from copy import copy
-from datetime import datetime, timedelta
-# from .TinyDefine import *
-# from .vnpyInc import *
 import futuquant as ft
 
 

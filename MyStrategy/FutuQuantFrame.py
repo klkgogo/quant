@@ -3,13 +3,8 @@
 """
 
 """
-import json
-# from .vnpyInc import *
-from TinyDefine import *
-# from .TinyStrateBase import TinyStrateBase
-# from .FutuMarketEvent import *
-from FutuDataEvent import *
-from StrateBase import *
+from MyStrategy.TinyDefine import *
+from MyStrategy.FutuDataEvent import *
 import futuquant as ft
 
 
