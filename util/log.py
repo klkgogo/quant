@@ -69,7 +69,7 @@ class LogEngine(object):
 
         if not self.fileHandler:
             print("will log to file {}".format(filePath))
-            self.fileHandler = logging.FileHandler(filePath)
+            self.fileHandler = logging.FileHandler(filePath, encoding='UTF-8')
             self.fileHandler.setLevel(self.level)
             self.fileHandler.setFormatter(self.formatter)
             self.logger.addHandler(self.fileHandler)
