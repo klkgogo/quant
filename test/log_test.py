@@ -7,8 +7,8 @@ filePath = expanduser(filePath)
 print(filePath)
 logger = LogEngine()
 logger.setLogLevel(LogEngine.LEVEL_DEBUG)
-logger.addConsoleHandler()
-logger.addFileHandler(filePath=filePath)
+logger.addConsoleHandler(level= LogEngine.LEVEL_INFO)
+logger.addFileHandler(filePath=filePath, level=LogEngine.LEVEL_DEBUG)
 
 logger.debug("hello world")
 

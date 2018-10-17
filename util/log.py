@@ -52,25 +52,30 @@ class LogEngine(object):
         self.level = level
 
     # ----------------------------------------------------------------------
-    def addConsoleHandler(self):
+    def addConsoleHandler(self, level=None):
         """添加终端输出"""
+        if not level:
+            level = self.level
         if not self.consoleHandler:
             self.consoleHandler = logging.StreamHandler()
-            self.consoleHandler.setLevel(self.level)
+            self.consoleHandler.setLevel(level)
             self.consoleHandler.setFormatter(self.formatter)
             self.logger.addHandler(self.consoleHandler)
 
     # ----------------------------------------------------------------------
-    def addFileHandler(self, filePath=None):
+    def addFileHandler(self, filePath=None, level=None):
         """添加文件输出"""
         if not filePath:
             filename = 'vt_' + datetime.now().strftime('%Y%m%d') + '.log'
             filePath = getTempPath(filename)
 
+        if not level:
+            level = self.level
+
         if not self.fileHandler:
             print("will log to file {}".format(filePath))
             self.fileHandler = logging.FileHandler(filePath, encoding='UTF-8')
-            self.fileHandler.setLevel(self.level)
+            self.fileHandler.setLevel(level)
             self.fileHandler.setFormatter(self.formatter)
             self.logger.addHandler(self.fileHandler)
 
