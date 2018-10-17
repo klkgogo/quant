@@ -17,10 +17,10 @@ def kdj(data, fk, sk, sd):
 class KDJStrate(StrateBase):
 
     subtype_list = [ft.SubType.QUOTE]
-    sample_frequent = 3 #每二秒推送一次报价，3次为6s
-    fk = 20
-    sk = 6
-    sd = 6
+    sample_frequent = 15 #每二秒推送一次报价，3次为6s
+    fk = 60
+    sk = 20
+    sd = 20
 
     power = 5000
 
@@ -34,6 +34,7 @@ class KDJStrate(StrateBase):
         self.sample_records = pd.DataFrame()
         self.date = datetime.datetime.now().date()
         self.market_snapshot = 0
+        self.last_append_time = ""
 
     def on_init_strate(self):
         self.logger.info("on_init_strate")
@@ -58,11 +59,16 @@ class KDJStrate(StrateBase):
         for ix, row in data.iterrows():
             if row['code'] != 'HK.800000':
                 continue
-            self.logger.info(
-                "on quote_changed\n {}".format(row))
-            if self.cache.shape[0] > 0 and self.cache['data_time'].iloc[-1] == row['data_time']:
+            # self.logger.info("last:{}, current:{}, same:{}".format(self.last_append_time, row['data_time'], self.last_append_time == row['data_time']));
+            #恒生指数会推送两次，一次推送报价，第二次推送成交量
+            if self.last_append_time == row['data_time']:
                 continue
+
             self.cache = self.cache.append(row)
+            self.logger.info(
+                "on quote_changed {}: last: {}, open:{}, high:{}, low: {}, count:{}".format(
+                    row['data_time'], row['last_price'], row['open_price'], row['high_price'], row['low_price'], self.cache.shape[0]))
+            self.last_append_time = row['data_time']
 
             if self.cache.shape[0] == self.sample_frequent:
                 record = self.gen_resample_record(self.cache)
@@ -71,10 +77,9 @@ class KDJStrate(StrateBase):
                 self.sample_records = self.sample_records.append(record)
                 if self.sample_records.shape[0] == 1: #避免计算kdj出现NaN, 向前扩展sample_records
                     self.extend_sample_records()
-                # self.run_strate()
+                if self.sample_records.shape[0] > 5:
+                    self.run_strate()
                 self.cache = pd.DataFrame()
-
-            self.open_position(self.long_code)
 
 
     def extend_sample_records(self):
@@ -98,6 +103,7 @@ class KDJStrate(StrateBase):
             self.logger.info("keep short")
             self.open_position(self.short_code)
             self.close_position(self.long_code)
+
         # k线上穿d线，平空仓，
         # 开多仓
         if k[-2] <= d[-2] and k[-1] > d[-1]:
@@ -106,17 +112,17 @@ class KDJStrate(StrateBase):
             self.open_position(self.long_code)
 
     def get_open_order_params(self, quote):
-        print("get_open_order_params ", quote)
-        order_price = quote['last_price'].iloc[0] + quote['price_spread'].iloc[0]
+        self.logger.info("get_open_order_params {}".format(quote))
+        order_price = quote['last_price'].iloc[0] + quote['price_spread'].iloc[0] * 2
         lot_size = self.market_snapshot['lot_size'].loc[quote['code'].loc[0]]
-        print("lot_size {}, price {}".format(lot_size, order_price))
+        self.logger.info("lot_size {}, price {}".format(lot_size, order_price))
         lot_price = lot_size * order_price
         lot_num = math.floor(self.power / lot_price)
         order_vol = lot_size * lot_num
         return order_price, order_vol
 
     def get_close_order_params(self, quote):
-        order_price = quote['last_price'].iloc[0] - quote['price_spread'].iloc[0]
+        order_price = quote['last_price'].iloc[0] - quote['price_spread'].iloc[0] * 2
         pos = self._quant_frame.get_tiny_position(quote['code'].loc[0])
         return order_price, pos
 
@@ -124,7 +130,7 @@ class KDJStrate(StrateBase):
         quote = self._quant_frame.get_rt_quote(code)
         order_price, order_vol = self.get_open_order_params(quote)
         ret, data = self.buy(order_price, order_vol, code)
-        self.logger.info("buy: {} at: {} , last_price:{} vol: {}, ret: {}, info: {}".format(code, order_price, quote['last_price'].iloc[0], order_vol, ret, data))
+        self.logger.warn("buy: {} at: {} , last_price:{} vol: {}, ret: {}, info: {}".format(code, order_price, quote['last_price'].iloc[0], order_vol, ret, data))
 
     def close_position(self, code):
         quote = self._quant_frame.get_rt_quote(code)
@@ -133,7 +139,7 @@ class KDJStrate(StrateBase):
             self.logger.warn("no position to close {}".format(code))
         else:
             ret, data = self.sell(order_price, pos.position, code)
-            self.logger.info("sell: {} at: {}, last_price:{} vol: {}, ret: {}, info: {}".format(code, order_price, quote['last_price'].iloc[0], pos, ret, data))
+            self.logger.warn("sell: {} at: {}, cost_price: {}, last_price:{} vol: {}, ret: {}, info: {}".format(code, order_price, pos.price,  quote['last_price'].iloc[0], pos.position, ret, data))
 
 if __name__ == '__main__':
     frame = FutuQuantFrame('127.0.0.1', 11111, MARKET_HK)
