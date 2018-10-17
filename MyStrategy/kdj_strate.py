@@ -17,10 +17,16 @@ def kdj(data, fk, sk, sd):
 class KDJStrate(StrateBase):
 
     subtype_list = [ft.SubType.QUOTE]
-    sample_frequent = 15 #每二秒推送一次报价，3次为6s
-    fk = 60
-    sk = 20
-    sd = 20
+    # sample_frequent = 15 #每二秒推送一次报价，3次为6s
+    # fk = 60
+    # sk = 20
+    # sd = 20
+
+    sample_frequent = 3 #每二秒推送一次报价，3次为6s
+    fk = 21
+    sk = 6
+    sd = 6
+
 
     power = 5000
 
@@ -100,6 +106,8 @@ class KDJStrate(StrateBase):
         # k线下穿d线，开空仓，平多仓
         self.logger.info("run_strate, lastk: {}, lastd: {}, thisK: {}, thisD: {}".format(k[-2], d[-2], k[-1], d[-1]))
         if k[-2] >= d[-2] and k[-1] < d[-1]:
+            self.logger.warn("run_strate, last_price: {}, last_j:{}, current_j:{}".format(
+                    self.sample_records['close'].iloc[-1], 3 * k[-2] - 2 * d[-2],  3 * k[-1] - 2 * d[-1]))
             self.logger.info("keep short")
             self.open_position(self.short_code)
             self.close_position(self.long_code)
@@ -107,15 +115,17 @@ class KDJStrate(StrateBase):
         # k线上穿d线，平空仓，
         # 开多仓
         if k[-2] <= d[-2] and k[-1] > d[-1]:
-            self.logger.info("keep long")
+            self.logger.warn("run_strate, last_price: {}, last_j:{} current_j:{}".format(
+                    self.sample_records['close'].iloc[-1], 3 * k[-2] - 2 * d[-2],  3 * k[-1] - 2 * d[-1]))
+            self.logger.warn("keep long")
             self.close_position(self.short_code)
             self.open_position(self.long_code)
 
     def get_open_order_params(self, quote):
-        self.logger.info("get_open_order_params {}".format(quote))
+        self.logger.warn("get_open_order_params {}".format(quote))
         order_price = quote['last_price'].iloc[0] + quote['price_spread'].iloc[0] * 2
         lot_size = self.market_snapshot['lot_size'].loc[quote['code'].loc[0]]
-        self.logger.info("lot_size {}, price {}".format(lot_size, order_price))
+        self.logger.warn("lot_size {}, price {}".format(lot_size, order_price))
         lot_price = lot_size * order_price
         lot_num = math.floor(self.power / lot_price)
         order_vol = lot_size * lot_num
@@ -139,7 +149,9 @@ class KDJStrate(StrateBase):
             self.logger.warn("no position to close {}".format(code))
         else:
             ret, data = self.sell(order_price, pos.position, code)
-            self.logger.warn("sell: {} at: {}, cost_price: {}, last_price:{} vol: {}, ret: {}, info: {}".format(code, order_price, pos.price,  quote['last_price'].iloc[0], pos.position, ret, data))
+            last_price = quote['last_price'].iloc[0]
+            profit = ((last_price + order_price) / 2 - pos.price) * pos.position
+            self.logger.warn("sell: {} at: {}, cost_price: {}, last_price:{} vol: {}, ret: {}, info: {}, profit:{}".format(code, order_price, pos.price,  last_price, pos.position, ret, data, profit))
 
 if __name__ == '__main__':
     frame = FutuQuantFrame('127.0.0.1', 11111, MARKET_HK)

@@ -207,8 +207,9 @@ class StrateBase(object):
         logger = LogEngine()
         logger.setLogLevel(LogEngine.LEVEL_DEBUG)
         logger.addConsoleHandler()
-        logger.addFileHandler(filePath=file_path)
+        logger.addFileHandler(filePath=file_path, level=LogEngine.LEVEL_WARN)
         return logger
+
     def __event_before_trading(self, event):
         self._market_opened= True
         date_time = datetime.fromtimestamp(int(event.dict_['timestamp']))
